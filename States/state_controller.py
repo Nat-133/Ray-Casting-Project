@@ -12,7 +12,7 @@ class StateController:
         self.clock = pygame.time.Clock()
         self.FPS = 30
         self.stateDict = {"menu":1,
-                          "level select":2,
+                          "level_select":2,
                           "gameplay":3,
                           "pause":4}
         self.activeState = self.stateDict["menu"]
