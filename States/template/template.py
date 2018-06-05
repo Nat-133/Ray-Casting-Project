@@ -5,14 +5,14 @@ class State(abc.ABC):
     an base class used as a marker for state classes 
     """
 
-    def __init__(self, screen, nextState):
+    def __init__(self,screen,nextState):
         self.nextState = nextState
         self.quit = False
         self.screen = screen
         self.screenWidth, self.screenHeight = self.screen.get_size()
 
     @abc.abstractmethod
-    def startup(self, persistentVar):
+    def startup(self,persistentVar):
         """
         called when the state becomes active,
         persistentVar should be a list
@@ -35,10 +35,9 @@ class State(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def update(self,dt):
+    def update(self):
         """
         provides game logic
-        dt is the delay time generated from clock.tick()
         """
         pass
 

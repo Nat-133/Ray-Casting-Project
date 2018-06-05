@@ -1,11 +1,9 @@
 import pygame
+import sys, os
 
 import menu
-import level_select
-import pause
-import gameplay
-
-
+sys.path.append(os.path.relpath(".."))
+print(os.getcwd())
 class StateController:
 
     def __init__(self):
@@ -17,31 +15,32 @@ class StateController:
         self.quit = False
         self.clock = pygame.time.Clock()
         self.FPS = 30
-        self.stateDict = {"menu": menu.Menu(self.screen),
-                          "level_select": level_select.LevelSelect(self.screen),
-                          "gameplay": gameplay.Gameplay(self.screen),
-                          "pause": pause.Pause(self.screen)}
+        self.stateDict = {"menu": menu.Menu(self.screen, "menu"),
+                          "level select":2,
+                          "gameplay":3,
+                          "pause":4}
         self.activeState = self.stateDict["menu"]
+        self.activeState.startup(None)
         self.persistentVar = False
 
     def gameloop(self):
         """
         the main loop for the game, most of the game's runtime will be spent in here
-        Calls the activeState's getEvent (for event handling)
-        Calls the activeSate's update    (for game logic)
-        Calls the activeState's draw     (to draw everything to the screen)
+        Calls the aciveState's getEvent (for event handling)
+        Calls the activeSate's update   (for game logic)
+        Calls the aciveState's draw     (to draw everything to the screen)
         """
         while not self.quit:
             dt = self.clock.tick(self.FPS)
             nextState = self.stateDict[self.activeState.nextState]
 
-            if self.activeState == nextState:  # if the activeState is unchanged
+            if self.activeState == nextState: # if the activeState is unchanged
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         self.activeState.exit()
                         self.quit = True
                     self.activeState.getEvent(event)
-                self.activeState.update(dt)
+                self.activeState.update()
                 self.activeState.draw()
 
                 pygame.display.update()
@@ -50,6 +49,5 @@ class StateController:
                 self.activeState = nextState
                 self.activeState.startup(self.persistentVar)
 
-
-a = StateController()
-
+A=StateController()
+A.gameloop()
