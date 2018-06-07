@@ -14,33 +14,33 @@ class levelSelect(template.State):
         super().__init__(screen, identifier)
 
         
-        #buttonNum = 
+        #buttonNum =
         self.pages = Pages(self.screen, 4, 4, buttonNum, 20, 200)
         
     def getLevels(self):
         """ returns the number of levles in the levels folder """
         files = os.listdir(os.path.relpath("..//Levels"))
         levels = [file for file in files if file[-4:] == ".txt"
-                                            and file[:6] == "level_"
-                                            and file[6:-4].isdigit()]
+                                         and file[:6] == "level_"
+                                         and file[6:-4].isdigit()]
         return len(levels)
+
 
 class Pages:
     """
     holds the items to appear on each page and stores the current page
     """
-    def __init__(self, screen, collumnNum, rowNum,
+    def __init__(self, screen, columnNum, rowNum,
                  buttonNum, xBorder, yBorder):
         self.screen = screen
         self.screenWidth, self.screenHeight = self.screen.get_size()
 
         self.rowNum = rowNum
-        self.collumnNum = collumnNum
+        self.columnNum = columnNum
         
         self.xBorder = xBorder
         self.yBorder = yBorder
         self.xSpacing = int((self.screenHeight - (self.xBorder * 2))
-                            / (self.collumnNum - 1))
+                            / (self.columnNum - 1))
         self.ySpacing = int((self.screenHeight - (self.yBorder*2))
                             / (self.rowNum - 1))
-        

@@ -50,16 +50,17 @@ class Button:
         return self.rect.collidepoint(mousePos)
 
 
-class LevelSelectButton(Button):
+class InternalStateButton(Button):
     """
-    a class for the level select buttons on the level select screen
+    a class for buttons that change internal state factors
     """
     def __init__(self, screen, returnedArgs, text,
                  textSize, primaryColour, secondaryColour, centrePos):
+
         self.screen = screen
         screenWidth, screenHeight = self.screen.get_size()
         
-        self.returnedArgs = nextStateArgs
+        self.returnedArgs = returnedArgs
         self.font = pygame.font.Font(None, textSize)
         self.primaryColour = primaryColour
         self.secondaryColour = secondaryColour
