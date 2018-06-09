@@ -10,9 +10,10 @@ class State(abc.ABC):
         self.quit = False
         self.screen = screen
         self.screenWidth, self.screenHeight = self.screen.get_size()
+        self.persistentVar = []  # a list of arguments passed to the next state
 
     @abc.abstractmethod
-    def startup(self,persistentVar):
+    def startup(self, persistentVar):
         """
         called when the state becomes active,
         persistentVar should be a list
@@ -28,7 +29,7 @@ class State(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def draw(self,screen):
+    def draw(self):
         """
         draws all the necessary things to the screen
         """
@@ -42,7 +43,7 @@ class State(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def getEvent(self,event):
+    def getEvent(self, event):
         """
         handles a single pygame event passed to it by the controll class
         """

@@ -6,7 +6,7 @@ class Button:
     """ a class for a basic button object. """
     
     def __init__(self, screen, nextState, nextStateArgs, text,
-                 textSize, primaryColour, secondaryColour, centrePos):
+                 textSize, primaryColour, secondaryColour, centrePos, buttonDimensions=(0, 0)):
         """
         screen: the screen that the button should be drawn to
         nextState: the string key for the state that should be switched to on click
@@ -17,6 +17,7 @@ class Button:
         secondaryColour: The colour of the background when the mouse isn't over the button
             Note: the primary and secondary colours are swapped when the mouse is over the button
         centrePos: a tuple in the form (x,y) representing the centre co-ordinates of the button
+        buttonDimensions: a tuple in the form (x,y) representing the width and height of the button
         """
         self.screen = screen
         screenWidth, screenHeight = self.screen.get_size()
@@ -26,20 +27,27 @@ class Button:
         self.font = pygame.font.Font(None, textSize)
         self.primaryColour = primaryColour
         self.secondaryColour = secondaryColour
+        self.text = text
         self.defaultText = self.font.render(text, True, self.primaryColour)
         self.secondaryText = self.font.render(text, True, self.secondaryColour)
-        self.rect = self.defaultText.get_rect(center=(int(screenWidth / 2) + centrePos[0],
-                                                      int(screenHeight / 2) + centrePos[1]))
-        self.mouseIsOverMe = True
+        
+        if buttonDimensions == (0, 0):
+            self.rect = self.defaultText.get_rect(center=centrePos)
+            self.textRect = self.defaultText.get_rect(center=centrePos)
+        else:
+            self.rect = pygame.Rect((0, 0), buttonDimensions)
+            self.rect.center = centrePos
+            self.textRect = self.defaultText.get_rect(center=(centrePos[0], centrePos[1]))
+        self.mouseIsOverMe = False
     
     def draw(self):
         """ draws the button with it's colours dependent on whether the cursor is over it"""
         if not self.mouseIsOverMe:
             pygame.draw.rect(self.screen, self.secondaryColour, self.rect)
-            self.screen.blit(self.defaultText, self.rect)
+            self.screen.blit(self.defaultText, self.textRect)
         else:
             pygame.draw.rect(self.screen, self.primaryColour, self.rect)
-            self.screen.blit(self.secondaryText, self.rect)
+            self.screen.blit(self.secondaryText, self.textRect)
 
     def update(self, mousepos):
         """ changes the inversion of the button's colours """
@@ -48,6 +56,10 @@ class Button:
     def isClicked(self, mousePos):
         """ returns True if the cursor is over the button"""
         return self.rect.collidepoint(mousePos)
+    
+    def __repr__(self):
+        return f"Button(position={self.rect.center}, " \
+               f"nextState={self.nextState}, arguments={self.nextStateArgs}, text={self.text}"
 
 
 class InternalStateButton(Button):
@@ -64,8 +76,14 @@ class InternalStateButton(Button):
         self.font = pygame.font.Font(None, textSize)
         self.primaryColour = primaryColour
         self.secondaryColour = secondaryColour
+        self.text = text
         self.defaultText = self.font.render(text, True, self.primaryColour)
         self.secondaryText = self.font.render(text, True, self.secondaryColour)
-        self.rect = self.defaultText.get_rect(center=(int(screenWidth / 2) + centrePos[0],
-                                                      int(screenHeight / 2) + centrePos[1]))
-        self.mouseIsOverMe = True
+        self.rect = self.defaultText.get_rect(center=(int(centrePos[0]),
+                                                      int(centrePos[1])))
+        self.textRect = self.rect
+        self.mouseIsOverMe = False
+    
+    def __repr__(self):
+        return f"InternalStateButton(position={self.rect.center}, " \
+               f"arguments={self.returnedArgs}, text={self.text}"
