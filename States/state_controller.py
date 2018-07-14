@@ -1,9 +1,12 @@
 import pygame
 import sys, os
 
+import level_select
 import menu
 sys.path.append(os.path.relpath(".."))
 print(os.getcwd())
+
+
 class StateController:
 
     def __init__(self):
@@ -16,7 +19,7 @@ class StateController:
         self.clock = pygame.time.Clock()
         self.FPS = 30
         self.stateDict = {"menu": menu.Menu(self.screen, "menu"),
-                          "level select":2,
+                          "level select":level_select.LevelSelect(self.screen, "level select"),
                           "gameplay":3,
                           "pause":4}
         self.activeState = self.stateDict["menu"]
@@ -33,8 +36,7 @@ class StateController:
         while not self.quit:
             dt = self.clock.tick(self.FPS)
             nextState = self.stateDict[self.activeState.nextState]
-
-            if self.activeState == nextState: # if the activeState is unchanged
+            if self.activeState == nextState:  # if the activeState is unchanged
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         self.activeState.exit()
