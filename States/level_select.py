@@ -13,7 +13,15 @@ class LevelSelect(template.State):
     
     def __init__(self, screen, identifier="level select"):
         super().__init__(screen, identifier)
-        self.id = identifier
+        """
+        ## attributes in super() ##
+        self.nextState
+         self.quit
+        self.screen
+        self.screenWidth, self.screenHeight
+        self.persistentVar
+        self.id
+        """
         self.rowNum, self.columnNum = 4, 4
         self.xBorderLeft, self.xBorderRight = 75, 75
         self.yBorderTop, self.yBorderBottom = 125, 100

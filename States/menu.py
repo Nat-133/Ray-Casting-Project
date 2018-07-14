@@ -14,7 +14,15 @@ class Menu(template.State):
     
     def __init__(self, screen, identifier):
         super().__init__(screen, identifier)
-        self.id = identifier
+        """
+        ## attributes in super() ##
+        self.nextState
+        self.quit
+        self.screen
+        self.screenWidth, self.screenHeight
+        self.persistentVar
+        self.id
+        """
         self.backgroundColour = (75, 75, 75)
         
         self.titleColour = (23,211,221)

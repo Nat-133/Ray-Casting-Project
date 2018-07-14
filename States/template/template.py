@@ -5,8 +5,9 @@ class State(abc.ABC):
     an base class used as a marker for state classes 
     """
 
-    def __init__(self,screen,nextState):
-        self.nextState = nextState
+    def __init__(self, screen, identifier):
+        self.id = identifier
+        self.nextState = identifier
         self.quit = False
         self.screen = screen
         self.screenWidth, self.screenHeight = self.screen.get_size()
