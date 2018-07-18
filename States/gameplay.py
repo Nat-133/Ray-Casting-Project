@@ -5,9 +5,15 @@ import pygame
 import numpy as np
 import template.template as template
 
+sys.path.append(os.path.relpath(".."))
+
+from State_Code import walls
+from State_Code import player
 
 class Gameplay(template.State):
-
+    groundChar = " "
+    wallType = {"#": walls.Wall("test_wall.png")}
+    
     def __init__(self, screen, identifier="gameplay"):
         super().__init__(screen, identifier)
         """
@@ -20,17 +26,14 @@ class Gameplay(template.State):
         self.id
         """
         self.levelNum = 1
-        self.level = []
+        self.level = np.array([])
         self.levelFile = "level_1.txt"
         self.startTime = time.time()
         self.extraTime = 0
         
-        self.speed = 1 # the speed of the player when moving
-        self.pos = np.array([0, 0])
-        self.vel = np.array([0, 0])
-        self._cameraAngle = 0
-        self.rotationVel = 0
+        self.player = player.Player(1, np.array([1.5, 1.5]), 0)
         self.fov = 90
+        
 
     def startup(self, persistentVar):
         """
@@ -69,7 +72,11 @@ class Gameplay(template.State):
         also collisions
         :return:
         """
-        pass
+        self.player.move()
+        wall = self.level[x for x in reverse(self.player.intPos)]
+        if wall != self.groundChar:
+            self.wallType[wall].handleCollision(self.player)
+        
     
     def getEvent(self, event):
         """
@@ -78,30 +85,10 @@ class Gameplay(template.State):
         """
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_w:
-                self.vel = self.rotateVector([1, 0], self.cameraAngle)
+                self.player.relVel = np.array([1,0])
             elif event.key == pygame.K_s:
-                self.vel = self.rotateVector(([-1, 0], self.cameraAngle))
+                self.player.relVel = np.array([-1,0])
             elif event.key == pygame.K_a:
-                self.rotationVel = 1
+                self.player.cameraVel = 1
             elif event.key == pygame.K_d:
-                self.rotationVel = -1
-    @staticmethod
-    def rotateVector(vector, angle):
-        """
-        :param vector: an array like object with dimensions 2,1
-        :param angle: an angle in radians
-        :return: a numpy array which is the original vector rotated anticlockwise by 'angle' radians
-        """
-        sinTheta = np.sin(angle)
-        cosTheta = np.cos(angle)
-        newX = (cosTheta * vector[0]) - (sinTheta * vector[1])
-        newY = (sinTheta * vector[0]) + (cosTheta * vector[1])
-        return np.array([newX, newY])
-    
-    @property
-    def cameraAngle(self):
-        return self._cameraAngle
-    
-    @cameraAngle.setter
-    def cameraAngle(self, value):
-        self._cameraAngle = value % (np.pi*2)
+                self.player.cameraVel = -1
