@@ -20,7 +20,7 @@ class Wall:
         :param dist: a float representing the distance from the lower coordinate grid line
         :return: the texture segment corresponding to the distance specified
         """
-        return self._textureSections[int(dist / self._columnWidth)]
+        return self._textureSections[int((64 * dist) / self._columnWidth)]
     
     def handleCollision(self, player):
         player.demove()

@@ -31,14 +31,14 @@ class Player:
     
     @cameraAngle.setter
     def cameraAngle(self, value):
-        self._cameraAngle = value % (np.pi*2)
+        self._cameraAngle = value % (2*np.pi)  # angle wrapping
         self.absVel = self.rotateVector(self.relVel, self.cameraAngle)
         
     def move(self):
-        self.pos += self.vel
+        self.pos += self.absVel
         
     def demove(self):
-        self.pos -= self.vel
+        self.pos -= self.absVel
         
     def turn(self):
         self.cameraAngle += self.cameraVel
