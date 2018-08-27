@@ -9,6 +9,7 @@ sys.path.append(os.path.relpath(".."))
 
 from State_Code import walls
 from State_Code import player
+from State_Code import raycast
 
 class Gameplay(template.State):
     groundChar = " "
