@@ -1,6 +1,6 @@
 import sys, os
 import pygame
-
+print('Path to module:', locals()['pygame'])
 
 class Wall:
     """

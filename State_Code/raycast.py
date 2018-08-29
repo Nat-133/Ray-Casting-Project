@@ -1,12 +1,17 @@
 import numpy as np
+import pygame
 
 class Ray:
-    
+    """
+    >>> thing = Ray(1.001483136, 3.5,3.5,np.array([[" "," "," "," "," ","#"],[" "," "," "," "," "," "],[" "," "," "," "," "," "],[" "," "," "," "," "," "],[" "," "," "," "," "," "]])," ")
+    >>> thing.horCast((thing.hx1, thing.hy1),10)
+    """
     def __init__(self, angle, x, y, level, groundChar):
         """
         angle is measured in radians from the posative x-axis clockwise
         the point 0,0 is top-left
         """
+        #self.screen = screen
         self.level = level
         self.groundChar = groundChar
         self.angle = angle
@@ -14,8 +19,10 @@ class Ray:
         self.endX, self.endY = x, y
         self.vdx, self.vdy, self.vx1, self.vy1 = self.SetUpVerticalVars()(self)
         self.hdx, self.hdy, self.hx1, self.hy1 = self.SetUpHorizontalVars()(self)
+        self.endPos, self.hitWall = self.cast()
+        self.length = np.sqrt((self.x - self.endPos[0]) ** 2 + (self.y - self.endPos[1]) ** 2)
     
-    def cast(self, searchDepth=19):
+    def cast(self, searchDepth=10):
         vertEndpos, vertWall = self.vertCast((self.vx1, self.vy1), searchDepth)
         horEndpos, horWall = self.horCast((self.hx1, self.hy1), searchDepth)
         if abs(vertEndpos[0]-self.x) > abs(horEndpos[0]-self.x):
@@ -84,47 +91,49 @@ class Ray:
             wall = self.level[self.getHorizontalWallIndex(rayPos)]
         except IndexError:
             return rayPos, self.groundChar
+            
 
         if wall != self.groundChar:
             return rayPos, wall
         else:
             newPos = (rayPos[0] + self.hdx, rayPos[1] + self.hdy)
-            return self.vertCast(newPos, searchDepth - 1)
+            return self.horCast(newPos, searchDepth - 1)
         
     def getVerticalWallIndex(self, pos):
         """
         :param pos:
         :return:
         
-        >>> Ray(np.pi/4, 1.5, 1.6, None, None).getVerticalWallIndex((2, 1.1))
-        (2, 1)
-        >>> Ray(5*np.pi/4, 1.5, 1.4, None, None).getVerticalWallIndex((1, 1.9))
-        (0, 1)
+        >>> Ray(np.pi/4, 1.5, 1.6, np.array([[""]])," ").getVerticalWallIndex((2, 1.1))
+        (1, 2)
+        >>> Ray(5*np.pi/4, 1.5, 1.4, np.array([[""]])," ").getVerticalWallIndex((1, 1.9))
+        (1, 0)
         """
         if self.vdx < 0:
-            return int(pos[0])-1, int(pos[1])
+            return int(pos[1]), int(pos[0])-1
         else:
-            return int(pos[0]), int(pos[1])
+            return int(pos[1]), int(pos[0])
         
     def getHorizontalWallIndex(self, pos):
         """
         :param pos:
         :return:
         
-        >>> Ray(np.pi/4, 1.4, 1.5, None, None).getHorizontalWallIndex((1.9, 1))
-        (1, 0)
-        >>> Ray(5*np.pi/4, 1.6, 1.5, None, None).getHorizontalWallIndex((1.1, 2))
-        (1, 2)
+        >>> Ray(np.pi/4, 1.4, 1.5, np.array([[""]])," ").getHorizontalWallIndex((1.9, 1))
+        (0, 1)
+        >>> Ray(5*np.pi/4, 1.6, 1.5, np.array([[""]])," ").getHorizontalWallIndex((1.1, 2))
+        (2, 1)
         """
         if self.hdy < 0:
-            return int(pos[0]), int(pos[1]) - 1
+            return int(pos[1]) - 1, int(pos[0])
         else:
-            return int(pos[0]), int(pos[1])
+            return int(pos[1]), int(pos[0]),
             
     class SetUpVerticalVars:
         """
-        >>> Ray.SetUpVerticalVars()(Ray(np.pi/4, 1.5, 1.5, None, None))# doctest: +ELLIPSIS
-        (1, -1.0..., 2, 1.0)
+        >>> test = Ray.SetUpVerticalVars()(Ray(np.pi/4, 1.5, 1.5, np.array([[""]])," "))
+        >>> [round(a) for a in test]
+        [1, -1.0, 2, 1.0]
         """
         def __call__(self, rayObj):
             vdx = self.getVerticaldx(rayObj.angle)
@@ -166,8 +175,10 @@ class Ray:
             1.0...
             >>> np.round(Ray.SetUpVerticalVars.getVerticaldy(7*np.pi/4, 1), 6)  # doctest: +ELLIPSIS
             1.0...
+            
+            #>>> Ray.SetUpVerticalVars.getVerticaldy()
             """
-            return -vdx / np.tan(angle)
+            return -vdx * np.tan(angle)
             
         @staticmethod
         def getVerticalx1(vdx, x):
@@ -208,7 +219,7 @@ class Ray:
     
     class SetUpHorizontalVars:
         """
-        >>> Ray.SetUpHorizontalVars()(Ray(np.pi/4, 1.5, 1.5, None, None)) # doctest: +ELLIPSIS
+        >>> Ray.SetUpHorizontalVars()(Ray(np.pi/4, 1.5, 1.5, np.array([[""]]), " ")) # doctest: +ELLIPSIS
         (1.0..., -1, 2.0, 1)
         """
         def __call__(self, rayObj):
