@@ -50,8 +50,8 @@ class Player:
         :param angle: an angle in radians
         :return: a numpy array which is the original vector rotated anticlockwise by 'angle' radians
         """
-        sinTheta = np.sin(angle)
-        cosTheta = np.cos(angle)
+        sinTheta = np.sin(-angle)
+        cosTheta = np.cos(-angle)
         newX = (cosTheta * vector[0]) - (sinTheta * vector[1])
         newY = (sinTheta * vector[0]) + (cosTheta * vector[1])
         return np.array([newX, newY])

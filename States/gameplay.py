@@ -35,7 +35,7 @@ class Gameplay(template.State):
         self.extraTime = 0
         
         self.player = player.Player(1, np.array([1.5, 1.5]), (7*np.pi/4))
-        self.fov = np.pi/2
+        self.fov = np.pi/3
         
     def startup(self, persistentVar):
         """
@@ -71,77 +71,45 @@ class Gameplay(template.State):
         self.screen.fill((255,255,255))
         angleIncrement = self.fov/self.screenRes[0]
         columnWidth = self.screenWidth/self.screenRes[0]
-        # print(self.player.cameraAngle+self.fov/2)
         angle = (self.player.cameraAngle + (self.fov / 2) + 0.0000001) % (2*np.pi)
         
-        beta = int(self.fov/2) + 0.0001
+        beta = int(self.fov/2) + 0.0000001
         x, y = self.player.pos
         bugAngleList = []
         for column in range(int(self.screenRes[0])):
-            # bugAngleList.append(angle)
-            # print(angle)
             ray = raycast.Ray(angle, x, y, self.level, self.groundChar)
             rayList.append(ray)
             viewDistance = ray.length
             try:
-                actualDistance = viewDistance * np.cos(beta)
-                topyPos = int(viewDistance * 30)
-                wallHeight = self.screenHeight - topyPos * 2
-                pygame.draw.rect(self.screen, (viewDistance * 10, viewDistance * 10, viewDistance * 10),
+                #print(np.degrees(angle), np.degrees(angle - self.player.cameraAngle))
+                actualDistance = viewDistance * np.cos(angle - self.player.cameraAngle)
+                # actualDistance = viewDistance * np.cos(beta)
+                topyPos = (self.screenHeight - (1 / actualDistance) * self.screenHeight * 3)/2
+                wallHeight = (1 / actualDistance) * self.screenRes[1] * 3
+                pygame.draw.rect(self.screen, (actualDistance * 10, actualDistance * 10, actualDistance * 10),
                                  pygame.Rect(column * columnWidth, topyPos, columnWidth, wallHeight))
-                # pygame.draw.rect(self.screen,(200,200,200),
-                #                  pygame.Rect(0,0,self.levelDimensions[0]*50,self.levelDimensions[1]*50))
-                # for i, row in enumerate(self.level):
-                #     for j, block in enumerate(row):
-                #         if block == "#":
-                #             pygame.draw.rect(self.screen, (0,0,0), (j*50, i*50, self.levelDimensions[0]*50/len(row), self.levelDimensions[1]*50/len(self.level)))
-                # pygame.display.update()
             except TypeError:
                 pass
-            # pygame.draw.rect(self.screen, (200, 200, 200),
-            #                  pygame.Rect(0, 0, self.levelDimensions[0] * 50, self.levelDimensions[1] * 50))
-            # for i, row in enumerate(self.level):
-            #     for j, block in enumerate(row):
-            #         if block == "#":
-            #             pygame.draw.rect(self.screen, (0, 0, 0), (
-            #             j * 50, i * 50, self.levelDimensions[0] * 50 / len(row),
-            #             self.levelDimensions[1] * 50 / len(self.level)))
-            playerPos = (self.player.pos[0] * 50, self.player.pos[1] * 50)
             angle = (angle - angleIncrement) % (2 * np.pi)
-        # for i,ray in enumerate(rayList):
-        #     pygame.draw.line(self.screen, (255-i, 0, 0), playerPos, (ray.endPos[0]*50,ray.endPos[1]*50))
-        #     pygame.time.wait(200)
-        #     pygame.display.update()
-        #     print(f"h:{ray.hdx}, {ray.hdy}  v:{ray.vdx}, {ray.vdy}")
-        #     # todo: get the ray drawn to the minimap as it's casting to see what is going on.
-        #     print(ray.angle*180/np.pi)
-        #     print("")
-        #     pygame.draw.line(self.screen, (0, 255, 0), playerPos, (
-        #     int(self.player.pos[0] * 50 + self.player.absVel[0] * 50),
-        #     int(self.player.pos[1] * 50 + self.player.absVel[1] * 50)))
-        #     pygame.draw.line(self.screen, (0, 0, 255), playerPos, (
-        #     playerPos[0] + 100 * np.cos(self.player.cameraAngle), playerPos[1] + 100 * np.sin(self.player.cameraAngle)))
-        #     pygame.display.update()
-        #     pygame.time.wait(10)
-        #     beta = (angle - angleIncrement)
-        #     #print("################start####################")
-        #     #for i,angle in enumerate(bugAngleList):
-        #     #    try:
-        #     #        print(angle-bugAngleList[i-1])
-        #     #    except:
-        #     #        pass
-        #     #print("####################END#######################")
         
-        # thing = np.copy(self.level)
-        # thing[int(self.player.pos[1]),int(self.player.pos[0])] = "P"
-        # pygame.draw.rect(self.screen, (200,200,200),pygame.Rect(0,0,self.levelDimensions[0]*50,self.levelDimensions[1]*50))
-        # playerPos = (self.player.pos[0]*50,self.player.pos[1]*50)
-        # for pos in rayList:
-        #     pygame.draw.line(self.screen,(255,0,0), playerPos,ray.endPos)
-        # pygame.draw.line(self.screen, (0,255,0),playerPos, (int(self.player.pos[0]*50+self.player.absVel[0]*50),int(self.player.pos[1]*50+self.player.absVel[1]*50)))
-        # pygame.draw.line(self.screen, (0,0,255), playerPos, (playerPos[0]+100*np.cos(self.player.cameraAngle),playerPos[1]+100*np.sin(self.player.cameraAngle)))
-        # print(thing)
-        # print(self.player.pos, self.player.cameraAngle*(180/np.pi))
+        # ############# draws debug mini-map ############# #
+        # pygame.draw.rect(self.screen, (200, 200, 200),
+        # pygame.Rect(0, 0, self.levelDimensions[0] * 50, self.levelDimensions[1] * 50))
+        # for i, row in enumerate(self.level):
+        #     for j, block in enumerate(row):
+        #         if block == "#":
+        #             pygame.draw.rect(self.screen, (0, 0, 0), (
+        #             j * 50, i * 50, self.levelDimensions[0] * 50 / len(row),
+        #             self.levelDimensions[1] * 50 / len(self.level)))
+        #     angle = (angle - angleIncrement) % (2 * np.pi)
+        # playerPos = (self.player.pos[0] * 50, self.player.pos[1] * 50)
+        # ray1 = rayList[0]
+        # ray3 = rayList[int((len(rayList)-1)/2)]
+        # ray2 = rayList[-1]
+        # pygame.draw.line(self.screen, (255,0,0), playerPos, (ray1.endPos[0]*50, ray1.endPos[1]*50))
+        # pygame.draw.line(self.screen, (255, 0, 0), playerPos, (ray2.endPos[0] * 50, ray2.endPos[1] * 50))
+        # pygame.draw.line(self.screen, (0, 255, 0), playerPos, (ray3.endPos[0] * 50, ray3.endPos[1] * 50))
+        # pygame.display.update()
     
     def update(self, dt):
         """

@@ -11,7 +11,6 @@ class Ray:
         angle is measured in radians from the posative x-axis clockwise
         the point 0,0 is top-left
         """
-        #self.screen = screen
         self.level = level
         self.groundChar = groundChar
         self.angle = angle
