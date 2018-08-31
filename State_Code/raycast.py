@@ -21,7 +21,7 @@ class Ray:
         self.endPos, self.hitWall = self.cast()
         self.length = np.sqrt((self.x - self.endPos[0]) ** 2 + (self.y - self.endPos[1]) ** 2)
     
-    def cast(self, searchDepth=10):
+    def cast(self, searchDepth=100):
         vertEndpos, vertWall = self.vertCast((self.vx1, self.vy1), searchDepth)
         horEndpos, horWall = self.horCast((self.hx1, self.hy1), searchDepth)
         if abs(vertEndpos[0]-self.x) > abs(horEndpos[0]-self.x):

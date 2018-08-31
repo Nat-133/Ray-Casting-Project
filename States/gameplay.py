@@ -70,7 +70,7 @@ class Gameplay(template.State):
         rayList =[]
         self.screen.fill((255,255,255))
         angleIncrement = self.fov/self.screenRes[0]
-        columnWidth = self.screenWidth/self.screenRes[0]
+        columnWidth = int(self.screenWidth/self.screenRes[0])
         angle = (self.player.cameraAngle + (self.fov / 2) + 0.0000001) % (2*np.pi)
         
         beta = int(self.fov/2) + 0.0000001
@@ -80,16 +80,22 @@ class Gameplay(template.State):
             ray = raycast.Ray(angle, x, y, self.level, self.groundChar)
             rayList.append(ray)
             viewDistance = ray.length
+            #print(np.degrees(angle), np.degrees(angle - self.player.cameraAngle))
+            actualDistance = viewDistance * np.cos(angle - self.player.cameraAngle)
+            # actualDistance = viewDistance * np.cos(beta)
+            hitWall = self.wallType[ray.hitWall]
+            sliceTexture = hitWall.getTexture(ray.endPos)
+            topyPos = (self.screenHeight - (1 / actualDistance) * self.screenHeight * 1)/2
+            wallHeight = int((1 / actualDistance) * self.screenHeight * 1)
             try:
-                #print(np.degrees(angle), np.degrees(angle - self.player.cameraAngle))
-                actualDistance = viewDistance * np.cos(angle - self.player.cameraAngle)
-                # actualDistance = viewDistance * np.cos(beta)
-                topyPos = (self.screenHeight - (1 / actualDistance) * self.screenHeight * 3)/2
-                wallHeight = (1 / actualDistance) * self.screenRes[1] * 3
-                pygame.draw.rect(self.screen, (actualDistance * 10, actualDistance * 10, actualDistance * 10),
-                                 pygame.Rect(column * columnWidth, topyPos, columnWidth, wallHeight))
-            except TypeError:
-                pass
+                sliceTexture = pygame.transform.scale(sliceTexture, (columnWidth, wallHeight))
+                self.screen.blit(sliceTexture, (column * columnWidth, topyPos))
+            except pygame.error:
+                # this is because transform.scale has a limit, when you get too close to the wall, the image
+                # slices get toooooooo large
+                pygame.draw.rect(self.screen, (actualDistance * 5, actualDistance * 5, actualDistance * 5),
+                                 pygame.Rect(column * columnWidth, 0, columnWidth, self.screenHeight))
+            
             angle = (angle - angleIncrement) % (2 * np.pi)
         
         # ############# draws debug mini-map ############# #
@@ -131,13 +137,13 @@ class Gameplay(template.State):
         """
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_w:
-                self.player.relVel = np.array([0.1, 0])
+                self.player.relVel = np.array([0.05, 0])
             elif event.key == pygame.K_s:
-                self.player.relVel = np.array([-0.1, 0])
+                self.player.relVel = np.array([-0.05, 0])
             elif event.key == pygame.K_a:
-                self.player.cameraVel = 0.1
+                self.player.cameraVel = 0.05
             elif event.key == pygame.K_d:
-                self.player.cameraVel = -0.1
+                self.player.cameraVel = -0.05
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_w:
                 self.player.relVel = np.array([0, 0])
@@ -147,155 +153,3 @@ class Gameplay(template.State):
                 self.player.cameraVel = 0
             elif event.key == pygame.K_d:
                 self.player.cameraVel = 0
-    
-    # def raycast(self, angle, beta, x, y):
-    #     rayList = []
-    #     # print(angle)
-    #     # ray-casting
-    #     verticalHit = False
-    #     verticalHitPos = None
-    #     verticalHitWall = None
-    #     horizontalHit = False
-    #     horizontalHitPos = None
-    #     horizontalHitWall = None
-    #
-    #     # ***Vertical intersections*** #
-    #     if angle < (np.pi / 2) or angle > ((3 * np.pi) / 2):
-    #         dx = 1
-    #         x1 = int(x) + dx
-    #     else:
-    #         dx = -1
-    #         x1 = int(x)
-    #     dy = 1 / np.tan(-(np.pi / 2) + angle)###
-    #
-    #     y1 = (x - x1) * np.tan(-angle) + y
-    #
-    #     currentx, currenty = x1, y1
-    #     if dx == 1:  # ray going right
-    #         for vertical in range(20):
-    #             if not (0 < currentx < (self.levelDimensions[0])):
-    #                 break
-    #             elif not (0 < currenty < (self.levelDimensions[1])):
-    #                 break
-    #             square = self.level[int(currenty), currentx]
-    #             if square != self.groundChar:
-    #                 # print("vertical hit")
-    #                 verticalHitPos = (currentx, currenty)
-    #                 verticalHitWall = self.wallType[square]
-    #                 verticalHit = True
-    #                 rayList.append((verticalHitPos[0] * 50, verticalHitPos[1] * 50))
-    #                 break
-    #             else:
-    #                 currentx += dx
-    #                 currenty += dy
-    #             pygame.draw.line(self.screen, (0,255,255),(self.player.pos[0]*50,self.player.pos[1]*50), (currentx*50,currenty*50))
-    #             print("done")
-    #             pygame.time.wait(100)
-    #             pygame.display.update()
-    #     else:  # going left
-    #         for vertical in range(20):
-    #             if not (0 < currentx < (self.levelDimensions[0])):
-    #                 break
-    #             elif not (0 < currenty < (self.levelDimensions[1])):
-    #                 break
-    #             square = self.level[int(currenty), (currentx - 1)]
-    #             if square != self.groundChar:
-    #                 # print("vertical hit")
-    #                 verticalHitPos = (currentx, currenty)
-    #                 verticalHitWall = self.wallType[square]
-    #                 verticalHit = True
-    #                 rayList.append((verticalHitPos[0] * 50, verticalHitPos[1] * 50))
-    #                 break
-    #             else:
-    #                 currentx += dx
-    #                 currenty += dy
-    #             pygame.draw.line(self.screen, (0, 255, 255), (self.player.pos[0] * 50, self.player.pos[1] * 50),
-    #                              (currentx * 50, currenty * 50))
-    #             print("done")
-    #             pygame.time.wait(100)
-    #             pygame.display.update()
-    #
-    #     pygame.display.update()
-    #     pygame.time.wait(100)
-    #     # ***Horizontal Intersections*** #
-    #     if angle < np.pi:
-    #         dy = -1
-    #         y1 = int(y)
-    #     else:
-    #         dy = 1
-    #         y1 = int(y) + dy
-    #     dx = (-dy) / np.tan(angle)
-    #     x1 = (y - y1) / np.tan(angle) + x
-    #     currentx, currenty = x1, y1
-    #     if dy == 1:  # ray going down
-    #         for horizontal in range(20):
-    #             if not (0 < currentx < (self.levelDimensions[0])):
-    #                 break
-    #             elif not (0 < currenty < (self.levelDimensions[1])):
-    #                 break
-    #             square = self.level[currenty, int(currentx)]
-    #             if square != self.groundChar:
-    #                 # print("horizontal hit")
-    #                 horizontalHitPos = (currentx, currenty)
-    #                 horizontalHitWall = self.wallType[square]
-    #                 horizontalHit = True
-    #                 rayList.append((horizontalHitPos[0] * 50, horizontalHitPos[1] * 50))
-    #                 break
-    #             else:
-    #                 currentx += dx
-    #                 currenty += dy
-    #             pygame.draw.line(self.screen, (0, 255, 0), (self.player.pos[0] * 50, self.player.pos[1] * 50),
-    #                              (currentx * 50, currenty * 50))
-    #             print("done")
-    #             pygame.time.wait(100)
-    #             pygame.display.update()
-    #     else:  # ray going up
-    #         for horizontal in range(20):
-    #             if not (0 < currentx < (self.levelDimensions[0])):
-    #                 break
-    #             elif not (0 < currenty < (self.levelDimensions[1])):
-    #                 break
-    #             square = self.level[currenty - 1, int(currentx)]
-    #             if square != self.groundChar:
-    #                 # print("horizontal hit")
-    #                 horizontalHitPos = (currentx, currenty)
-    #                 horizontalHitWall = self.wallType[square]
-    #                 horizontalHit = True
-    #                 rayList.append((horizontalHitPos[0] * 50, horizontalHitPos[1] * 50))
-    #                 break
-    #             else:
-    #                 currentx += dx
-    #                 currenty += dy
-    #             pygame.draw.line(self.screen, (0, 255, 0), (self.player.pos[0] * 50, self.player.pos[1] * 50),
-    #                              (currentx * 50, currenty * 50))
-    #             print("done")
-    #             pygame.time.wait(100)
-    #             pygame.display.update()
-    #
-    #     if verticalHit and horizontalHit:
-    #         if dx < 0:
-    #             if horizontalHitPos[0] < verticalHitPos[0]:
-    #                 viewDistance = np.sqrt((x - verticalHitPos[0]) ** 2 + (y - verticalHitPos[1]) ** 2)
-    #
-    #                 # section = verticalHitWall.getTexture(verticalHitPos[1] % 1)
-    #                 # section = pygame.transform.scale(section, ())
-    #             else:
-    #                 viewDistance = np.sqrt((x - horizontalHitPos[0]) ** 2 + (y - horizontalHitPos[1]) ** 2)
-    #         else:
-    #             if horizontalHitPos[0] < verticalHitPos[0]:
-    #                 viewDistance = np.sqrt((x - horizontalHitPos[0]) ** 2 + (y - horizontalHitPos[1]) ** 2)
-    #
-    #                 # section = verticalHitWall.getTexture(verticalHitPos[1] % 1)
-    #                 # section = pygame.transform.scale(section, ())
-    #             else:
-    #                 viewDistance = np.sqrt((x - verticalHitPos[0]) ** 2 + (y - verticalHitPos[1]) ** 2)
-    #
-    #     elif verticalHit:
-    #         viewDistance = np.sqrt((x - verticalHitPos[0]) ** 2 + (y - verticalHitPos[1]) ** 2)
-    #
-    #     elif horizontalHit:
-    #         viewDistance = np.sqrt((x - horizontalHitPos[0]) ** 2 + (y - horizontalHitPos[1]) ** 2)
-    #     else:
-    #         viewDistance = None
-    #     return viewDistance, rayList[0]
-        

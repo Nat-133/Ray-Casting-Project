@@ -15,12 +15,18 @@ class Wall:
         self._textureSections = [self._fullTexture.subsurface((x*self._columnWidth, 0, self._columnWidth, 64))
                                  for x in range(16)]
         
-    def getTexture(self, dist):
+    def getTexture(self, hitCoord):
         """
         :param dist: a float representing the distance from the lower coordinate grid line
         :return: the texture segment corresponding to the distance specified
         """
-        return self._textureSections[int((64 * dist) / self._columnWidth)]
+        xDist = hitCoord[0] % 1
+        yDist = hitCoord[1] % 1
+        
+        if xDist == 0:
+            return self._textureSections[int((64 * yDist) / self._columnWidth)]
+        else:
+            return self._textureSections[int((64 * xDist) / self._columnWidth)]
     
     def handleCollision(self, player):
         player.demove()
