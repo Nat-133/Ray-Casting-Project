@@ -65,7 +65,10 @@ class LevelSelect(template.State):
     def exit(self):
         print(self.currentPage.mouseOveredButton.nextStateArgs)
         try:
-            return {**self.persistentVar,**self.currentPage.mouseOveredButton.nextStateArgs}
+            z = self.persistentVar.copy()
+            z.update(self.currentPage.mouseOveredButton.nextStateArgs)
+            return z  # above used instead of commented out block because it works in python versions 3.4 or less
+            # return {**self.persistentVar,**self.currentPage.mouseOveredButton.nextStateArgs}
         except AttributeError:
             return self.persistentVar
     
