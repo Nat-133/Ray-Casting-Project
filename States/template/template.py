@@ -11,13 +11,13 @@ class State(abc.ABC):
         self.quit = False
         self.screen = screen
         self.screenWidth, self.screenHeight = self.screen.get_size()
-        self.persistentVar = []  # a list of arguments passed to the next state
+        self.persistentVar = {}  # a dict containing arguments passed to the next state
 
     @abc.abstractmethod
     def startup(self, persistentVar):
         """
         called when the state becomes active,
-        persistentVar should be a list
+        persistentVar should be a dictionary
         """
         pass
 
@@ -37,9 +37,10 @@ class State(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def update(self):
+    def update(self, dt):
         """
         provides game logic
+        dt should be the time since last frame
         """
         pass
 

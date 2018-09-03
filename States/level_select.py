@@ -1,4 +1,5 @@
-import os, sys
+import os
+import sys
 import pygame
 import pickle
 
@@ -62,17 +63,21 @@ class LevelSelect(template.State):
         self.screen.blit(self.titleText, self.titleRect)
     
     def exit(self):
+        print(self.currentPage.mouseOveredButton.nextStateArgs)
         try:
-            return self.currentPage.mouseOveredButton.nextStateArgs
+            z = self.persistentVar.copy()
+            z.update(self.currentPage.mouseOveredButton.nextStateArgs)
+            return z  # above used instead of commented out block because it works in python versions 3.4 or less
+            # return {**self.persistentVar,**self.currentPage.mouseOveredButton.nextStateArgs}
         except AttributeError:
-            return [1]
+            return self.persistentVar
     
     def draw(self):
         self.screen.fill(self.backgroundColour)
         self.currentPage.draw()
         self.screen.blit(self.titleText, self.titleRect)
         
-    def update(self):
+    def update(self, dt):
 
         self.currentPage.update()
         try:  # this enables wrapping so the next page button on the last page will return to the first page
@@ -143,7 +148,8 @@ class Page:
                 columnsBeforeNum = i % self.rowNum
                 buttonCentrePosx = self.xBorderLeft + (xButtonSpacing * columnsBeforeNum)
                 buttonCentrePosy = self.yBorderTop + (yButtonSpacing * rowsBeforeButton)
-                self.buttonList.append(button.Button(self.screen, "gameplay", [buttonIndex + 1],
+                self.buttonList.append(button.Button(self.screen, "gameplay",
+                                                     {"restart":True, "levelNum":buttonIndex + 1},
                                                      f"{buttonIndex + 1}", self.buttonFontSize,
                                                      (23, 211, 221), (24, 100, 221),
                                                      (buttonCentrePosx, buttonCentrePosy), self.buttonSize))
@@ -157,7 +163,7 @@ class Page:
         self.buttonList.append(button.InternalStateButton(self.screen, [self.pageNum + 1], ">", 40,
                                                           (23, 211, 221), (24, 100, 221),
                                                           (horizontalScreenCentre + 80, loweryBorderCentre+20)))
-        self.buttonList.append(button.Button(self.screen, "menu", [], "Back", 40,
+        self.buttonList.append(button.Button(self.screen, "menu", {}, "Back", 40,
                                              (23, 211, 221), (24, 100, 221), (30, 20)))
         
     def draw(self):

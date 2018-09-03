@@ -12,7 +12,7 @@ class Menu(template.State):
     the class resposnible for the main menu
     """
     
-    def __init__(self, screen, identifier):
+    def __init__(self, screen, identifier="menu"):
         super().__init__(screen, identifier)
         """
         ## attributes in super() ##
@@ -35,11 +35,11 @@ class Menu(template.State):
         buttonColour = (24, 100, 221)
         
         screenMiddle = (int(self.screenWidth/2), int(self.screenHeight/2))
-        self.buttonList = [button.Button(self.screen, "gameplay", [1], "Quick Play", 40,
+        self.buttonList = [button.Button(self.screen, "gameplay", {"levelNum": 1}, "Quick Play", 40,
                                          buttonTextColour, buttonColour, (screenMiddle[0], screenMiddle[1])),
-                           button.Button(self.screen, "level select", None, "Level Select",
+                           button.Button(self.screen, "level select", {}, "Level Select",
                                          40, buttonTextColour, buttonColour, (screenMiddle[0], screenMiddle[1]+50))]
-        self.persistentVar = []
+        self.persistentVar = {}
        
     def startup(self, persistentVar):
         self.nextState = self.id
@@ -49,16 +49,18 @@ class Menu(template.State):
         self.screen.blit(self.titleText, titleRect)
         with open(os.path.relpath("..\\Levels\\last_played_level.txt"), "rb") as f:
             f.seek(0)
-            self.buttonList[0].nextStateArgs = [pickle.load(f)]
+            self.buttonList[0].nextStateArgs["levelNum"] = pickle.load(f)
 
     def exit(self):
+        with open(os.path.relpath("..//Levels//last_played_level.txt"), "rb") as f:
+            self.persistentVar["levelNum"] = pickle.load(f)
         return self.persistentVar
 
     def draw(self):
         for thing in self.buttonList:
             thing.draw()
 
-    def update(self):
+    def update(self, dt):
         mousepos = pygame.mouse.get_pos()
         for thing in self.buttonList:
             thing.update(mousepos)
@@ -67,5 +69,8 @@ class Menu(template.State):
         if event.type == pygame.MOUSEBUTTONUP:
             for thing in self.buttonList:
                 if thing.mouseIsOverMe:
-                    self.persistentVar = thing.nextStateArgs
+                    print(self.persistentVar)
+                    print(thing.nextStateArgs)
+                    print("")
+                    self.persistentVar = {**self.persistentVar, **thing.nextStateArgs}
                     self.nextState = thing.nextState

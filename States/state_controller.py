@@ -3,6 +3,8 @@ import sys, os
 
 import level_select
 import menu
+import gameplay
+
 sys.path.append(os.path.relpath(".."))
 print(os.getcwd())
 
@@ -20,11 +22,12 @@ class StateController:
         self.FPS = 30
         self.stateDict = {"menu": menu.Menu(self.screen, "menu"),
                           "level select":level_select.LevelSelect(self.screen, "level select"),
-                          "gameplay":3,
-                          "pause":4}
+                          "gameplay": gameplay.Gameplay(self.screen, "gameplay"),
+                          "level complete":4,
+                          "pause":5}
         self.activeState = self.stateDict["menu"]
-        self.activeState.startup(None)
-        self.persistentVar = False
+        self.persistentVar = {"restart": True, "levelNum": 1}
+        self.activeState.startup(self.persistentVar)
 
     def gameloop(self):
         """
@@ -42,7 +45,7 @@ class StateController:
                         self.activeState.exit()
                         self.quit = True
                     self.activeState.getEvent(event)
-                self.activeState.update()
+                self.activeState.update(dt)
                 self.activeState.draw()
 
                 pygame.display.update()
@@ -51,5 +54,6 @@ class StateController:
                 self.activeState = nextState
                 self.activeState.startup(self.persistentVar)
 
-A=StateController()
+
+A = StateController()
 A.gameloop()

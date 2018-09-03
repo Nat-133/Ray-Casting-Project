@@ -10,7 +10,7 @@ class Button:
         """
         screen: the screen that the button should be drawn to
         nextState: the string key for the state that should be switched to on click
-        nextStateArgs: a list of arguments that should be passed to the next state when this button is clicked
+        nextStateArgs: a dict of arguments that should be passed to the next state when this button is clicked
         text: a string representing what will be written on the button
         textSize: an integer representing the pixel height of text
         primaryColour: The colour of the text when the mouse isn't over the button
