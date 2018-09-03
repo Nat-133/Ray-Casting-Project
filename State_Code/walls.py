@@ -17,7 +17,7 @@ class Wall:
         
     def getTexture(self, hitCoord):
         """
-        :param dist: a float representing the distance from the lower coordinate grid line
+        :param: hitCoord: a tuple representing the coordinates of a ray's hit position
         :return: the texture segment corresponding to the distance specified
         """
         xDist = hitCoord[0] % 1
@@ -28,6 +28,19 @@ class Wall:
         else:
             return self._textureSections[int((64 * xDist) / self._columnWidth)]
     
-    def handleCollision(self, player):
+    def handleCollision(self, player, state):
         player.demove()
+        return state.id
+
+
+class NextLevelDoor(Wall):
+    """
+    the wall type for the level end portal
+    """
+    def __init__(self, textureFile):
+        super().__init__(textureFile)
+        self.nextStateArgs = {"levelNum":1, "restart":True}
         
+    def handleCollision(self, player, state):
+        self.nextStateArgs["levelNum"] = state.levelNum + 1
+        return "level select"

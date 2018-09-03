@@ -23,7 +23,8 @@ class StateController:
         self.stateDict = {"menu": menu.Menu(self.screen, "menu"),
                           "level select":level_select.LevelSelect(self.screen, "level select"),
                           "gameplay": gameplay.Gameplay(self.screen, "gameplay"),
-                          "pause":4}
+                          "level complete":4,
+                          "pause":5}
         self.activeState = self.stateDict["menu"]
         self.persistentVar = {"restart": True, "levelNum": 1}
         self.activeState.startup(self.persistentVar)

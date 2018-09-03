@@ -13,7 +13,7 @@ from State_Code import raycast
 
 class Gameplay(template.State):
     groundChar = " "
-    wallType = {"#": walls.Wall("test_wall.png")}
+    wallType = {"#":walls.Wall("test_wall.png"), "E":walls.NextLevelDoor("exit_wall.png")}
     
     def __init__(self, screen, identifier="gameplay"):
         super().__init__(screen, identifier)
@@ -26,6 +26,7 @@ class Gameplay(template.State):
         self.persistentVar
         self.id
         """
+        self.timerFont = pygame.font.Font(None, 100)
         self.screenRes = (self.screenWidth/2, self.screenHeight)
         self.levelNum = 1
         self.level = np.array([["#", "#", "#"], ["#", " ", "#"], ["#", "#", "#"]])
@@ -53,12 +54,12 @@ class Gameplay(template.State):
             with open(os.path.relpath(f"..//Levels//{self.levelFile}"), "r") as f:
                 self.level = np.array(json.loads(f.read()))
             self.levelDimensions = self.level.shape
-            self.startTime = time.time()
+            self.player = player.Player(1, np.array([1.5, 1.5]), (7 * np.pi / 4))
         else:
-            self.extraTime = time.time() - self.startTime
             self.startTime = time.time()
             
     def exit(self):
+        self.extraTime += time.time() - self.startTime
         return self.persistentVar
     
     def draw(self):
@@ -127,7 +128,9 @@ class Gameplay(template.State):
         pos = self.player.intPos
         wall = self.level[pos[1], pos[0]]
         if wall != self.groundChar:
-            self.wallType[wall].handleCollision(self.player)
+            self.nextState = self.wallType[wall].handleCollision(self.player, self)
+            if self.nextState != self.id:
+                self.persistentVar.update(self.wallType[wall].nextStateArgs)
         self.player.turn()
         
     def getEvent(self, event):
@@ -144,6 +147,9 @@ class Gameplay(template.State):
                 self.player.cameraVel = 0.05
             elif event.key == pygame.K_d:
                 self.player.cameraVel = -0.05
+            elif event.key == pygame.K_ESCAPE:
+                self.nextState = "pause"
+                
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_w:
                 self.player.relVel = np.array([0, 0])
