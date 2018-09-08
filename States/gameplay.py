@@ -81,22 +81,23 @@ class Gameplay(template.State):
             ray = raycast.Ray(angle, x, y, self.level, self.groundChar)
             rayList.append(ray)
             viewDistance = ray.length
-            #print(np.degrees(angle), np.degrees(angle - self.player.cameraAngle))
             actualDistance = viewDistance * np.cos(angle - self.player.cameraAngle)
-            # actualDistance = viewDistance * np.cos(beta)
-            hitWall = self.wallType[ray.hitWall]
-            sliceTexture = hitWall.getTexture(ray.endPos)
-            topyPos = (self.screenHeight - (1 / actualDistance) * self.screenHeight * 1)/2
-            wallHeight = int((1 / actualDistance) * self.screenHeight * 1)
             try:
-                sliceTexture = pygame.transform.scale(sliceTexture, (columnWidth, wallHeight))
-                self.screen.blit(sliceTexture, (column * columnWidth, topyPos))
-            except pygame.error:
-                # this is because transform.scale has a limit, when you get too close to the wall, the image
-                # slices get toooooooo large
-                pygame.draw.rect(self.screen, (actualDistance * 5, actualDistance * 5, actualDistance * 5),
-                                 pygame.Rect(column * columnWidth, 0, columnWidth, self.screenHeight))
-            
+                hitWall = self.wallType[ray.hitWall]
+                sliceTexture = hitWall.getTexture(ray.endPos)
+                topyPos = (self.screenHeight - (1 / actualDistance) * self.screenHeight * 1)/2
+                wallHeight = int((1 / actualDistance) * self.screenHeight * 1)
+                try:
+                    sliceTexture = pygame.transform.scale(sliceTexture, (columnWidth, wallHeight))
+                    self.screen.blit(sliceTexture, (column * columnWidth, topyPos))
+                except pygame.error:
+                    # this is because transform.scale has a limit, when you get too close to the wall, the image
+                    # slices get toooooooo large
+                    pygame.draw.rect(self.screen, (actualDistance * 5, actualDistance * 5, actualDistance * 5),
+                                     pygame.Rect(column * columnWidth, 0, columnWidth, self.screenHeight))
+            except KeyError:
+                pass
+
             angle = (angle - angleIncrement) % (2 * np.pi)
         
         # ############# draws debug mini-map ############# #

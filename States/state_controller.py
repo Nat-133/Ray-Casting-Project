@@ -4,6 +4,7 @@ import sys, os
 import level_select
 import menu
 import gameplay
+import pause
 
 sys.path.append(os.path.relpath(".."))
 print(os.getcwd())
@@ -24,7 +25,7 @@ class StateController:
                           "level select":level_select.LevelSelect(self.screen, "level select"),
                           "gameplay": gameplay.Gameplay(self.screen, "gameplay"),
                           "level complete":4,
-                          "pause":5}
+                          "pause":pause.Pause(self.screen, "pause")}
         self.activeState = self.stateDict["menu"]
         self.persistentVar = {"restart": True, "levelNum": 1}
         self.activeState.startup(self.persistentVar)

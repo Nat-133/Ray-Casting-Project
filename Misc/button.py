@@ -20,8 +20,6 @@ class Button:
         buttonDimensions: a tuple in the form (x,y) representing the width and height of the button
         """
         self.screen = screen
-        screenWidth, screenHeight = self.screen.get_size()
-        
         self.nextState = nextState
         self.nextStateArgs = nextStateArgs
         self.font = pygame.font.Font(None, textSize)

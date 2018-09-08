@@ -63,7 +63,6 @@ class LevelSelect(template.State):
         self.screen.blit(self.titleText, self.titleRect)
     
     def exit(self):
-        print(self.currentPage.mouseOveredButton.nextStateArgs)
         try:
             z = self.persistentVar.copy()
             z.update(self.currentPage.mouseOveredButton.nextStateArgs)
