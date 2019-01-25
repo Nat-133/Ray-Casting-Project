@@ -97,8 +97,8 @@ def createMazeFile(w=10, h=10, newLevelNum=getGreatestLevelNum(os.listdir()) + 1
     cells = generateMaze(w, h)
     choices = [(-1,0),(1,0),(0,-1),(0,1)]
     for i in range(int(w*h/2)):
-        randomy = random.randint(0,len(cells)-2)+1
-        randomx = random.randint(0,len(cells[0])-2)+1
+        randomy = random.randint(0,len(cells)-3)+1
+        randomx = random.randint(0,len(cells[0])-3)+1
         cells[randomy][randomx].relativeOutLinks.append(random.choice(choices))
         
     maze = createListMaze(cells)

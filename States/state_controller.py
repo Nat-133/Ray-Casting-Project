@@ -1,12 +1,11 @@
 import pygame
 import sys, os
 
-import level_select
-import menu
-import gameplay
-import pause
+from States import level_select
+from States import menu
+from States import gameplay
+from States import pause
 
-sys.path.append(os.path.relpath(".."))
 print(os.getcwd())
 
 

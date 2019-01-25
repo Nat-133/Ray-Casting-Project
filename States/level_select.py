@@ -3,10 +3,7 @@ import sys
 import pygame
 import pickle
 
-import template.template as template
-
-sys.path.append(os.path.relpath(".."))
-
+from States import template
 from Misc import button
 
 
@@ -47,7 +44,7 @@ class LevelSelect(template.State):
     @staticmethod
     def getLevels():
         """ returns the number of levles in the levels folder """
-        files = os.listdir(os.path.relpath("..//Levels"))
+        files = os.listdir(os.path.relpath("Levels"))
         levels = [file for file in files if file[-4:] == ".txt"
                                          and file[:6] == "level_"
                                          and file[6:-4].isdigit()]
@@ -77,29 +74,28 @@ class LevelSelect(template.State):
         self.screen.blit(self.titleText, self.titleRect)
         
     def update(self, dt):
-
         self.currentPage.update()
+        oldPage = self.currentPage
         try:  # this enables wrapping so the next page button on the last page will return to the first page
-            oldPage = self.currentPage
             self.currentPage = self.pages[self.currentPage.nextPage]
-            oldPage.nextPage = oldPage.pageNum
         except IndexError:
-            self.currentPage.nextPage = self.currentPage.pageNum
             self.currentPage = self.pages[0]
+
+        if oldPage.pageNum != self.currentPage.pageNum:
+            self.currentPage.startup()
         self.nextState = self.currentPage.nextState
-        
-        self.currentPage.nextState = "level select"
-    
+
     def getEvent(self, event):
         if event.type == pygame.MOUSEBUTTONUP:
             try:
-                self.currentPage.nextState = self.currentPage.mouseOveredButton.nextState
+                nextThing = self.currentPage.mouseOveredButton.nextState
             except AttributeError:
-                try:
-                    self.currentPage.nextPage = self.currentPage.mouseOveredButton.returnedArgs[0]
-                except AttributeError:
-                    pass
-
+                pass
+            else:
+                if type(nextThing) == int:
+                    self.currentPage.nextPage = nextThing
+                else:
+                    self.currentPage.nextState = nextThing
 
 class Page:
     """
@@ -107,15 +103,16 @@ class Page:
     """
     
     def __init__(self, screen, columnNum, rowNum, xBorderLeft, xBorderRight, yBorderTop, yBorderBottom,
-                 buttonSize, buttonFontSize, pageNumber, maximumButtonIndex):
+                 buttonSize, buttonFontSize, pageNumber, maximumButtonIndex, stateId="level select"):
+        self.pageNum = pageNumber
         self.nextPage = pageNumber
-        self.nextState = "level select"
+        self.stateId = stateId
+        self.nextState = stateId
         self.textColour = (23, 211, 221)
         
         self.screen = screen
         self.screenWidth, self.screenHeight = self.screen.get_size()
-        
-        self.pageNum = pageNumber
+
         self.rowNum = rowNum
         self.columnNum = columnNum
         self.xBorderLeft, self.xBorderRight = xBorderLeft, xBorderRight
@@ -156,10 +153,10 @@ class Page:
         horizontalScreenCentre = int(self.screenWidth/2)
         loweryBorderCentre = int(self.screenWidth - (self.yBorderBottom / 2))
         
-        self.buttonList.append(button.InternalStateButton(self.screen, [self.pageNum-1], "<", 40,
+        self.buttonList.append(button.Button(self.screen, self.pageNum-1, {}, "<", 40,
                                                           (23, 211, 221), (24, 100, 221),
                                                           (horizontalScreenCentre-80, loweryBorderCentre+20)))
-        self.buttonList.append(button.InternalStateButton(self.screen, [self.pageNum + 1], ">", 40,
+        self.buttonList.append(button.Button(self.screen, self.pageNum+1, {}, ">", 40,
                                                           (23, 211, 221), (24, 100, 221),
                                                           (horizontalScreenCentre + 80, loweryBorderCentre+20)))
         self.buttonList.append(button.Button(self.screen, "menu", {}, "Back", 40,
@@ -177,3 +174,7 @@ class Page:
             singleButton.update(mousePos)
             if singleButton.mouseIsOverMe:
                 self.mouseOveredButton = singleButton
+
+    def startup(self):
+        self.nextPage = self.pageNum
+        self.nextState = self.stateId

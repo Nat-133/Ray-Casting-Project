@@ -3,17 +3,16 @@ import json
 import time
 import pygame
 import numpy as np
-import template.template as template
 
-sys.path.append(os.path.relpath(".."))
-
+from States import template
 from State_Code import walls
 from State_Code import player
 from State_Code import raycast
 
 class Gameplay(template.State):
     groundChar = " "
-    wallType = {"#":walls.Wall("test_wall.png"), "E":walls.NextLevelDoor("exit_wall.png")}
+    wallType = {"#":walls.Wall("test_wall.png"),
+                "E":walls.NextLevelDoor("exit_wall.png")}
     
     def __init__(self, screen, identifier="gameplay"):
         super().__init__(screen, identifier)
@@ -51,7 +50,7 @@ class Gameplay(template.State):
             self.startTime = time.time()
             self.levelNum = self.persistentVar["levelNum"]
             self.levelFile = f"level_{self.levelNum}.txt"
-            with open(os.path.relpath(f"..//Levels//{self.levelFile}"), "r") as f:
+            with open(os.path.relpath(f"Levels//{self.levelFile}"), "r") as f:
                 self.level = np.array(json.loads(f.read()))
             self.levelDimensions = self.level.shape
             self.player = player.Player(1, np.array([1.5, 1.5]), (7 * np.pi / 4))
@@ -69,7 +68,9 @@ class Gameplay(template.State):
         :return:
         """
         rayList =[]
-        self.screen.fill((255,255,255))
+        self.screen.fill((75,75,75))
+        floorRect = pygame.Rect(0, int(self.screenHeight/2), self.screenWidth, int(self.screenHeight/2))
+        pygame.draw.rect(self.screen, (25,25,25), floorRect)
         angleIncrement = self.fov/self.screenRes[0]
         columnWidth = int(self.screenWidth/self.screenRes[0])
         angle = (self.player.cameraAngle + (self.fov / 2) + 0.0000001) % (2*np.pi)

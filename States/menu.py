@@ -1,9 +1,7 @@
 import sys, os
 import pygame
-import pickle
-sys.path.append(os.path.relpath(".."))
 
-import template.template as template
+from States import template
 from Misc import button
 
 
@@ -47,13 +45,13 @@ class Menu(template.State):
         self.screen.fill(self.backgroundColour)
         titleRect = self.titleText.get_rect(center=self.titlePosition)
         self.screen.blit(self.titleText, titleRect)
-        with open(os.path.relpath("..\\Levels\\last_played_level.txt"), "rb") as f:
+        with open(os.path.relpath("Levels\\last_played_level.txt"), "rb") as f:
             f.seek(0)
-            self.buttonList[0].nextStateArgs["levelNum"] = pickle.load(f)
+            self.buttonList[0].nextStateArgs["levelNum"] = int(f.read())
 
     def exit(self):
-        with open(os.path.relpath("..//Levels//last_played_level.txt"), "rb") as f:
-            self.persistentVar["levelNum"] = pickle.load(f)
+        with open(os.path.relpath("Levels//last_played_level.txt"), "w") as f:
+            f.write(str(self.persistentVar["levelNum"]))
         return self.persistentVar
 
     def draw(self):

@@ -1,8 +1,7 @@
 import os, sys
 import pygame
 
-sys.path.append(os.path.relpath(".."))
-import template.template as template
+from States import template
 from Misc import button
 
 class Pause(template.State):

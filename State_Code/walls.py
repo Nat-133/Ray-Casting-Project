@@ -10,7 +10,7 @@ class Wall:
         """
         :param textureFile: the file name of a 64x64px image file
         """
-        self._fullTexture = pygame.image.load(os.path.relpath(f"..//Sprites//{textureFile}"))
+        self._fullTexture = pygame.image.load(os.path.relpath(f"Sprites//{textureFile}"))
         self._columnWidth = 4
         self._textureSections = [self._fullTexture.subsurface((x*self._columnWidth, 0, self._columnWidth, 64))
                                  for x in range(16)]
