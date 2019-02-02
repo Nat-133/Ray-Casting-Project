@@ -18,18 +18,17 @@ class Wall:
   
     def getTexture(self, hitCoord):
         """
-        :param: hitCoord: a tuple representing the coordinates of a ray's hit position
-        :return: the texture segment corresponding to the distance specified
+        hitCoord: a tuple representing the coordinates of a ray's hit position
+        returns the texture segment corresponding to the distance specified
         """
         xDist = hitCoord[0] % 1
         yDist = hitCoord[1] % 1
         
-        if xDist == 0:
-            return self._textureSections[int((64 * yDist) / self._columnWidth)]
+        if xDist == 0:  # if the hit wall is vertical
+            return self._textureSections[(self._textureSize[1] * yDist) // self._columnWidth]
         else:
-            return self._textureSections[int((64 * xDist) / self._columnWidth)]
-    
-    
+            return self._textureSections[(self._textureSize[0] * xDist) // self._columnWidth]
+
 
 class NextLevelDoor(Wall):
     """
