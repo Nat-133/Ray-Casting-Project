@@ -2,7 +2,7 @@ import sys, os
 import pygame
 
 from States import template
-from Misc import button
+from State_Code import button
 
 
 class Menu(template.State):

@@ -2,7 +2,7 @@ import os, sys
 import pygame
 
 from States import template
-from Misc import button
+from State_Code import button
 
 class Pause(template.State):
     
