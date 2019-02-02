@@ -11,22 +11,12 @@ from State_Code import raycast
 
 class Gameplay(template.State):
     groundChar = " "
-    wallType = {"#":walls.Wall("test_wall.png"),
-                "E":walls.NextLevelDoor("exit_wall.png")}
+    wallType = {"#":walls.Wall((43, 42, 41)),
+                "E":walls.NextLevelDoor((244, 229, 66))}
     
     def __init__(self, screen, identifier="gameplay"):
         super().__init__(screen, identifier)
-        """
-        ## attributes in super() ##
-        self.nextState
-        self.quit
-        self.screen
-        self.screenWidth, self.screenHeight
-        self.persistentVar
-        self.id
-        """
-        self.timerFont = pygame.font.Font(None, 100)
-        self.screenRes = (self.screenWidth/2, self.screenHeight)
+        self.screenRes = (self.screenWidth, self.screenHeight)  # the resolution used when drawing the walls
         self.levelNum = 1
         self.level = np.array([["#", "#", "#"], ["#", " ", "#"], ["#", "#", "#"]])
         self.levelDimensions = self.level.shape
@@ -39,23 +29,20 @@ class Gameplay(template.State):
         
     def startup(self, persistentVar):
         """
-        ### called when the state becomes active
-        :param persistentVar: should be a dict with a "levelNum" key
-        :return:
+        called when the state becomes active
         """
         self.nextState = self.id
         self.persistentVar = persistentVar
         if self.persistentVar["restart"]:
             self.extraTime = 0
-            self.startTime = time.time()
             self.levelNum = self.persistentVar["levelNum"]
             self.levelFile = f"level_{self.levelNum}.txt"
             with open(os.path.relpath(f"Levels//{self.levelFile}"), "r") as f:
-                self.level = np.array(json.loads(f.read()))
+                self.level = np.array(json.loads(f.read()))  # loads the level into a numpy array
             self.levelDimensions = self.level.shape
             self.player = player.Player(1, np.array([1.5, 1.5]), (7 * np.pi / 4))
-        else:
-            self.startTime = time.time()
+
+        self.startTime = time.time()
             
     def exit(self):
         self.extraTime += time.time() - self.startTime
@@ -63,31 +50,33 @@ class Gameplay(template.State):
     
     def draw(self):
         """
-        ray casting
-        
-        :return:
+        ray casting for every pixle collumn
         """
-        rayList =[]
         self.screen.fill((75,75,75))
         floorRect = pygame.Rect(0, int(self.screenHeight/2), self.screenWidth, int(self.screenHeight/2))
         pygame.draw.rect(self.screen, (25,25,25), floorRect)
         angleIncrement = self.fov/self.screenRes[0]
-        columnWidth = int(self.screenWidth/self.screenRes[0])
+        columnWidth = int(self.screenWidth/self.screenRes[0])  # the width of the pixle collumns
         angle = (self.player.cameraAngle + (self.fov / 2) + 0.0000001) % (2*np.pi)
         
-        beta = int(self.fov/2) + 0.0000001
         x, y = self.player.pos
         bugAngleList = []
         for column in range(int(self.screenRes[0])):
             ray = raycast.Ray(angle, x, y, self.level, self.groundChar)
-            rayList.append(ray)
             viewDistance = ray.length
             actualDistance = viewDistance * np.cos(angle - self.player.cameraAngle)
             try:
                 hitWall = self.wallType[ray.hitWall]
-                sliceTexture = hitWall.getTexture(ray.endPos)
+            except KeyError:
+                pass
+            else:
+                sliceColour = hitWall.colour
                 topyPos = (self.screenHeight - (1 / actualDistance) * self.screenHeight * 1)/2
                 wallHeight = int((1 / actualDistance) * self.screenHeight * 1)
+                pygame.draw.rect(self.screen, sliceColour, pygame.Rect(column*columnWidth, topyPos, columnWidth, wallHeight))
+
+            angle = (angle - angleIncrement) % (2 * np.pi)
+            """
                 try:
                     sliceTexture = pygame.transform.scale(sliceTexture, (columnWidth, wallHeight))
                     self.screen.blit(sliceTexture, (column * columnWidth, topyPos))
@@ -98,8 +87,10 @@ class Gameplay(template.State):
                                      pygame.Rect(column * columnWidth, 0, columnWidth, self.screenHeight))
             except KeyError:
                 pass
-
-            angle = (angle - angleIncrement) % (2 * np.pi)
+            """
+            
+            
+            
         
         # ############# draws debug mini-map ############# #
         # pygame.draw.rect(self.screen, (200, 200, 200),
@@ -124,15 +115,12 @@ class Gameplay(template.State):
         """
         changes position and camera angle based on velocities
         also collisions
-        :return:
         """
         self.player.move()
         pos = self.player.intPos
         wall = self.level[pos[1], pos[0]]
-        if wall != self.groundChar:
-            self.nextState = self.wallType[wall].handleCollision(self.player, self)
-            if self.nextState != self.id:
-                self.persistentVar.update(self.wallType[wall].nextStateArgs)
+        if wall != self.groundChar:  # if player is not in an empty square
+            self.wallType[wall].handleCollision(self.player, self)  # calls the wall's collision method
         self.player.turn()
         
     def getEvent(self, event):
@@ -150,7 +138,7 @@ class Gameplay(template.State):
             elif event.key == pygame.K_d:
                 self.player.cameraVel = -0.05
             elif event.key == pygame.K_ESCAPE:
-                self.nextState = "pause"
+                self.nextState = "menu"
                 
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_w:

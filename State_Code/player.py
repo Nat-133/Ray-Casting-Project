@@ -9,7 +9,7 @@ class Player:
         self._cameraAngle = cameraAngle
         
         self.cameraVel = 0
-        self.absVel = np.array([0, 0])
+        self._absVel = np.array([0, 0])
         self._relVel = np.array([0, 0])
         
     @property
@@ -18,12 +18,18 @@ class Player:
     
     @property
     def relVel(self):
+        """
+        this is the player's velocity relative to the camera angle
+        """
         return self._relVel
     
     @relVel.setter
     def relVel(self, value):
+        """
+        updates the absolute velocity when relVel changes
+        """
         self._relVel = value
-        self.absVel = self.rotateVector(self._relVel, self.cameraAngle)
+        self._absVel = self.rotateVector(self._relVel, self.cameraAngle)
     
     @property
     def cameraAngle(self):
@@ -31,14 +37,17 @@ class Player:
     
     @cameraAngle.setter
     def cameraAngle(self, value):
+        """
+        updates the absolute velocity when the camera angle changes
+        """
         self._cameraAngle = value % (2*np.pi)  # angle wrapping
-        self.absVel = self.rotateVector(self.relVel, self.cameraAngle)
+        self._absVel = self.rotateVector(self.relVel, self.cameraAngle)
         
     def move(self):
-        self.pos += self.absVel
+        self.pos += self._absVel
         
     def demove(self):
-        self.pos -= self.absVel
+        self.pos -= self._absVel
         
     def turn(self):
         self.cameraAngle += self.cameraVel
@@ -46,12 +55,26 @@ class Player:
     @staticmethod
     def rotateVector(vector, angle):
         """
-        :param vector: an array like object with dimensions 2,1
-        :param angle: an angle in radians
-        :return: a numpy array which is the original vector rotated anticlockwise by 'angle' radians
+        returns a numpy array that is vector rotated anticlockwise by angle radians
+
+        >>> [round(a) for a in Player.rotateVector(np.array([1,0]), np.pi/2)]
+        [0.0, -1.0]
+
+        >>> [round(a) for a in Player.rotateVector(np.array([0,1]), np.pi/2)]
+        [1.0, 0.0]
+
+        >>> [round(a) for a in Player.rotateVector(np.array([0,-1]), np.pi/2)]
+        [-1.0, -0.0]
+
+        >>> [round(a,1) for a in Player.rotateVector(np.array([0,-1]), np.pi/4)]
+        [-0.7, -0.7]
         """
         sinTheta = np.sin(-angle)
         cosTheta = np.cos(-angle)
         newX = (cosTheta * vector[0]) - (sinTheta * vector[1])
         newY = (sinTheta * vector[0]) + (cosTheta * vector[1])
         return np.array([newX, newY])
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod(verbose=True)
