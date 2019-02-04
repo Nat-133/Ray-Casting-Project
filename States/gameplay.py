@@ -11,8 +11,9 @@ from State_Code import raycast
 
 class Gameplay(template.State):
     groundChar = " "
-    wallType = {"#":walls.Wall((43, 42, 41)),
-                "E":walls.NextLevelDoor((244, 229, 66))}
+    wallType = {"#" : walls.Wall("test_wall.png"),
+                "B" : walls.Wall("test_wall_2.png"),
+                "E" : walls.NextLevelDoor("exit_wall.png")}
     
     def __init__(self, screen, identifier="gameplay"):
         super().__init__(screen, identifier)
@@ -70,16 +71,17 @@ class Gameplay(template.State):
             except KeyError:
                 pass
             else:
-                sliceColour = hitWall.colour
                 topyPos = (self.screenHeight - (1 / actualDistance) * self.screenHeight * 1)/2
                 wallHeight = int((1 / actualDistance) * self.screenHeight * 1)
-                pygame.draw.rect(self.screen, sliceColour, pygame.Rect(column*columnWidth, topyPos, columnWidth, wallHeight))
+                sliceTexture = hitWall.getTexture(ray.endPos)
+                sliceTexture = pygame.transform.scale(sliceTexture, (columnWidth, wallHeight))
+                self.screen.blit(sliceTexture, (column * columnWidth, topyPos))
 
             angle = (angle - angleIncrement) % (2 * np.pi)
+
             """
                 try:
-                    sliceTexture = pygame.transform.scale(sliceTexture, (columnWidth, wallHeight))
-                    self.screen.blit(sliceTexture, (column * columnWidth, topyPos))
+                    
                 except pygame.error:
                     # this is because transform.scale has a limit, when you get too close to the wall, the image
                     # slices get toooooooo large
