@@ -6,10 +6,10 @@ class Wall:
     """
     a class for defining a standard wall in the game
     """
-    def __init__(self, textureFileName):
+    def __init__(self, textureFileName, columnWidth):
         self._fullTexture = pygame.image.load(os.path.relpath(f"Sprites//{textureFileName}"))
         self._textureSize = self._fullTexture.get_size()
-        self._columnWidth = 4
+        self._columnWidth = columnWidth
         self._textureSlices = [self._fullTexture.subsurface(x*self._columnWidth, 0, self._columnWidth, self._textureSize[1])
                                for x in range(self._textureSize[0]//self._columnWidth)]
 
@@ -35,7 +35,7 @@ class NextLevelDoor(Wall):
     the wall type for the level end portal
     """
     def __init__(self, textureFile):
-        super().__init__(textureFile)
+        super().__init__(textureFile, columnWidth)
         self.nextStateArgs = {"levelNum":1, "restart":True}
         
     def handleCollision(self, player, state):

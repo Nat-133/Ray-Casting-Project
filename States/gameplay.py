@@ -11,13 +11,14 @@ from State_Code import raycast
 
 class Gameplay(template.State):
     groundChar = " "
-    wallType = {"#" : walls.Wall("test_wall.png"),
-                "B" : walls.Wall("test_wall_2.png"),
-                "E" : walls.NextLevelDoor("exit_wall.png")}
+    columnWidth = 1  # the width of the wall slices in pixels
+    wallType = {"#" : walls.Wall("test_wall.png", columnWidth),
+                "B" : walls.Wall("test_wall_2.png", columnWidth),
+                "E" : walls.NextLevelDoor("exit_wall.png", columnWidth)}
     
     def __init__(self, screen, identifier="gameplay"):
         super().__init__(screen, identifier)
-        self.screenRes = (self.screenWidth, self.screenHeight)  # the resolution used when drawing the walls
+        self.screenRes = (int(self.screenWidth/self.columnWidth), self.screenHeight)  # the resolution used when drawing the walls
         self.levelNum = 1
         self.level = np.array([["#", "#", "#"], ["#", " ", "#"], ["#", "#", "#"]])
         self.levelDimensions = self.level.shape
@@ -57,7 +58,6 @@ class Gameplay(template.State):
         floorRect = pygame.Rect(0, int(self.screenHeight/2), self.screenWidth, int(self.screenHeight/2))
         pygame.draw.rect(self.screen, (25,25,25), floorRect)
         angleIncrement = self.fov/self.screenRes[0]
-        columnWidth = int(self.screenWidth/self.screenRes[0])  # the width of the pixle collumns
         angle = (self.player.cameraAngle + (self.fov / 2) + 0.0000001) % (2*np.pi)
         
         x, y = self.player.pos
@@ -74,8 +74,8 @@ class Gameplay(template.State):
                 topyPos = (self.screenHeight - (1 / actualDistance) * self.screenHeight * 1)/2
                 wallHeight = int((1 / actualDistance) * self.screenHeight * 1)
                 sliceTexture = hitWall.getTexture(ray.endPos)
-                sliceTexture = pygame.transform.scale(sliceTexture, (columnWidth, wallHeight))
-                self.screen.blit(sliceTexture, (column * columnWidth, topyPos))
+                sliceTexture = pygame.transform.scale(sliceTexture, (self.columnWidth, wallHeight))
+                self.screen.blit(sliceTexture, (column * self.columnWidth, topyPos))
 
             angle = (angle - angleIncrement) % (2 * np.pi)
 
