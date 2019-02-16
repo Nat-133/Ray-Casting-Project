@@ -13,23 +13,18 @@ class Cell:
         neighbours = []
         i = self.index[0]
         j = self.index[1]
-        if not cells[self.index[0] - 1][self.index[1]].visited and i > 0:
+        # up
+        if i > 0 and not cells[i - 1][j].visited: # check if cell is in the maze
             neighbours.append((-1, 0))
-        
-        try:
-            if not cells[self.index[0] + 1][self.index[1]].visited:
-                neighbours.append((1, 0))
-        except IndexError:
-            pass
-        
-        if not cells[self.index[0]][self.index[1] - 1].visited and j > 0:
+        # down
+        if i < len(cells)-1 and not cells[i + 1][j].visited: 
+            neighbours.append((1, 0))
+        # left
+        if j > 0 and not cells[i][j - 1].visited:
             neighbours.append((0, -1))
-        
-        try:
-            if not cells[self.index[0]][self.index[1] + 1].visited:
-                neighbours.append((0, 1))
-        except IndexError:
-            pass
+        # right
+        if j < len(cells[0])-1 and not cells[i][j + 1].visited:
+            neighbours.append((0, 1))
         
         return neighbours
     
@@ -37,7 +32,7 @@ class Cell:
         try:
             relativeOutLink = random.choice(self.getUnvisitedNeighbours(cells))
             self.relativeOutLinks.append(relativeOutLink)
-        except IndexError:
+        except IndexError:  # if random.choice is called on an empty list
             relativeOutLink = None
         self.visited = True
         return relativeOutLink
@@ -47,24 +42,29 @@ class Cell:
 
 
 def generateCells(width, height):
+    """
+    creates a rectangular nested list of Cell instances to represent the maze
+    """
     return [[Cell((i, j)) for j in range(width)] for i in range(height)]
 
 
 def generateMaze(width, height):
-    cells = generateCells(width, height)
+    cells = generateCells(height, width)
     cellVisitedStack = [cells[0][0]]
-    while len(cellVisitedStack) != 0:
-        currentCell = cellVisitedStack[-1]
-        if currentCell.index != (len(cells)-1, len(cells[0])-1):
+    while len(cellVisitedStack) != 0:  # while there are unvisited cells
+        currentCell = cellVisitedStack[-1]  # last element in stack
+
+        if currentCell.index != (height-1, width-1):  # if the cell isn't bottom-right
             relativeIndex = currentCell.createOutLink(cells)
         else:
-            currentCell.visited = True
             relativeIndex = None
-        if relativeIndex is None:
+            currentCell.visited = True
+            
+        if relativeIndex is None:  # if the current cell has no unvisited neighbours
             cellVisitedStack.pop()
         else:
             absIndex = (currentCell.index[0] + relativeIndex[0], currentCell.index[1] + relativeIndex[1])
-            cellVisitedStack.append(cells[absIndex[0]][absIndex[1]])
+            cellVisitedStack.append(cells[absIndex[0]][absIndex[1]])  # add next cell to stack
     return cells
 
 
@@ -74,17 +74,19 @@ def newIndex(oldIndex):
 
 def createListMaze(cells):
     maze = [["#" for j in range((len(cells[0])) * 2 + 1)] for i in range((len(cells)) * 2 + 1)]
-    for _ in cells:
-        for cell in _:
+    # makes a nested list filled with walls
+    for row in cells:
+        for cell in row:
             maze[newIndex(cell.index[0])][newIndex(cell.index[1])] = " "
+            #  removes walls where cells are
             for link in cell.relativeOutLinks:
                 maze[newIndex(cell.index[0]) + link[0]][newIndex(cell.index[1]) + link[1]] = " "
+                #  removes walls where there are links between cells
     return maze
 
 
 def getGreatestLevelNum(directoryFiles, check=None):
-    if check is None:
-        check = len(directoryFiles)
+    check = check if check is not None else len(directoryFiles)
     if f"level_{check}.txt" in directoryFiles:
         return check
     elif check < 1:
@@ -93,22 +95,23 @@ def getGreatestLevelNum(directoryFiles, check=None):
         return getGreatestLevelNum(directoryFiles, check-1)
 
 
-def createMazeFile(w=10, h=10, newLevelNum=getGreatestLevelNum(os.listdir()) + 1):
+def createMazeFile(w=10, h=10, newLevelNum=None):
+    newLevelNum = newLevelNum if newLevelNum else getGreatestLevelNum(os.listdir())+ 1
+    # the above allows newLevelNum to be specified by the user
     cells = generateMaze(w, h)
     choices = [(-1,0),(1,0),(0,-1),(0,1)]
-    for i in range(int(w*h/2)):
+    for i in range(int(w*h/4)):
         randomy = random.randint(0,len(cells)-3)+1
         randomx = random.randint(0,len(cells[0])-3)+1
         cells[randomy][randomx].relativeOutLinks.append(random.choice(choices))
+        # randomly adds more connecters to make the mazes easier
         
     maze = createListMaze(cells)
-    maze[-2][-2] = "E"
+    maze[-2][-2] = "E"  # adds the exit
     with open(f"level_{newLevelNum}.txt", "w") as f:
-        f.write(json.dumps(maze).replace("],", "],\n"))
+        f.write(json.dumps(maze).replace("],","],\n"))  # saves the maze to a file
     
 
 def generateMultipleMazeFiles(number):
-    firstLevelNum=getGreatestLevelNum(os.listdir()) + 1
-    print(f"firstLevelNum:{firstLevelNum}")
-    for i in range(number):
-        createMazeFile(newLevelNum=firstLevelNum + i)
+    for _ in range(number):
+        createMazeFile()
