@@ -34,7 +34,7 @@ class NextLevelDoor(Wall):
     """
     the wall type for the level end portal
     """
-    def __init__(self, textureFile):
+    def __init__(self, textureFile, columnWidth):
         super().__init__(textureFile, columnWidth)
         self.nextStateArgs = {"levelNum":1, "restart":True}
         

@@ -74,7 +74,16 @@ class Gameplay(template.State):
                 topyPos = (self.screenHeight - (1 / actualDistance) * self.screenHeight * 1)/2
                 wallHeight = int((1 / actualDistance) * self.screenHeight * 1)
                 sliceTexture = hitWall.getTexture(ray.endPos)
-                sliceTexture = pygame.transform.scale(sliceTexture, (self.columnWidth, wallHeight))
+                if wallHeight < self.screenHeight*2:
+                    sliceTexture = pygame.transform.scale(sliceTexture, (self.columnWidth, wallHeight))
+                else:
+                    currentSliceSize = sliceTexture.get_size()
+                    newSliceHeight = (self.screenHeight*2/wallHeight) * currentSliceSize[1]
+                    sliceSection = pygame.Rect(0, (currentSliceSize[1]-newSliceHeight)//2,
+                                               self.columnWidth, int(newSliceHeight))
+                    textureSection = sliceTexture.subsurface(sliceSection)
+                    sliceTexture = pygame.transform.scale(textureSection, (self.columnWidth, self.screenHeight*2))
+                    topyPos = -int(self.screenHeight/2)
                 self.screen.blit(sliceTexture, (column * self.columnWidth, topyPos))
 
             angle = (angle - angleIncrement) % (2 * np.pi)
