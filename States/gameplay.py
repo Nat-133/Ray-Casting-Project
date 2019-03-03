@@ -3,6 +3,7 @@ import json
 import time
 import pygame
 import numpy as np
+from math import ceil
 
 from States import template
 from State_Code import walls
@@ -71,23 +72,25 @@ class Gameplay(template.State):
             except KeyError:
                 pass
             else:
-                topyPos = (self.screenHeight - (1 / actualDistance) * self.screenHeight * 1)/2
-                wallHeight = int((1 / actualDistance) * self.screenHeight * 1)
                 sliceTexture = hitWall.getTexture(ray.endPos)
-                if wallHeight < self.screenHeight*2:
-                    sliceTexture = pygame.transform.scale(sliceTexture, (self.columnWidth, wallHeight))
-                else:
-                    currentSliceSize = sliceTexture.get_size()
-                    newSliceHeight = (self.screenHeight*2/wallHeight) * currentSliceSize[1]
-                    sliceSection = pygame.Rect(0, (currentSliceSize[1]-newSliceHeight)//2,
-                                               self.columnWidth, int(newSliceHeight))
-                    textureSection = sliceTexture.subsurface(sliceSection)
-                    sliceTexture = pygame.transform.scale(textureSection, (self.columnWidth, self.screenHeight*2))
-                    topyPos = -int(self.screenHeight/2)
+                currentSliceSize = sliceTexture.get_size()
+                wallHeight = int((1 / actualDistance) * self.screenHeight)  # the size of the scaled full texture
+                textureScaleFactor = wallHeight / currentSliceSize[1]
+                newSliceHeight = min(currentSliceSize[1], ceil(self.screenHeight/textureScaleFactor))
+                newSliceTopy = int((currentSliceSize[1]-newSliceHeight)/2)  
+                newSliceHeight = currentSliceSize[1]-2*newSliceTopy  # makes the topy and height rounding consistent
+                #^ the height of the texture that will be scaled up
+                sliceSection = pygame.Rect(0, newSliceTopy,
+                                            self.columnWidth, newSliceHeight)
+                textureSection = sliceTexture.subsurface(sliceSection)
+                scaledSectionHeight = int(newSliceHeight*textureScaleFactor)
+                sliceTexture = pygame.transform.scale(textureSection, (self.columnWidth, scaledSectionHeight))
+                #^ scales the cropped texture to the correct size
+                topyPos = (self.screenHeight-scaledSectionHeight)//2
                 self.screen.blit(sliceTexture, (column * self.columnWidth, topyPos))
-
+            
             angle = (angle - angleIncrement) % (2 * np.pi)
-
+            
             """
                 try:
                     
