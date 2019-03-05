@@ -83,11 +83,19 @@ class Gameplay(template.State):
                 sliceSection = pygame.Rect(0, newSliceTopy,
                                             self.columnWidth, newSliceHeight)
                 textureSection = sliceTexture.subsurface(sliceSection)
-                scaledSectionHeight = int(newSliceHeight*textureScaleFactor)
-                sliceTexture = pygame.transform.scale(textureSection, (self.columnWidth, scaledSectionHeight))
-                #^ scales the cropped texture to the correct size
-                topyPos = (self.screenHeight-scaledSectionHeight)//2
-                self.screen.blit(sliceTexture, (column * self.columnWidth, topyPos))
+                     
+                if newSliceHeight > 2:  # if the slice is larger than 2 pixels
+                    scaledSectionHeight = int(newSliceHeight*textureScaleFactor)
+                    sliceTexture = pygame.transform.scale(textureSection, (self.columnWidth, scaledSectionHeight))
+                    #^ scales the cropped texture to the correct size
+
+                    topyPos = (self.screenHeight-scaledSectionHeight)//2
+                    self.screen.blit(sliceTexture, (column * self.columnWidth, topyPos))
+                else:
+                    # allows the player to get as close to the wall as they like
+                    colour = textureSection.get_at((0,0))
+                    pygame.draw.rect(self.screen, colour, pygame.Rect(column * self.columnWidth, 0,
+                                                 self.columnWidth, self.screenHeight))
             
             angle = (angle - angleIncrement) % (2 * np.pi)
             
