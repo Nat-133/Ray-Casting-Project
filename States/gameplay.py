@@ -29,6 +29,11 @@ class Gameplay(template.State):
         
         self.player = player.Player(1, np.array([1.5, 1.5]), (7*np.pi/4))
         self.fov = np.pi/3
+
+        self.timerFont = pygame.font.Font(None,50)
+        self.timerColour = (0, 200, 0)
+
+        self.mouseSensitivity = 0.01
         
     def startup(self, persistentVar):
         """
@@ -46,9 +51,13 @@ class Gameplay(template.State):
             self.player = player.Player(1, np.array([1.5, 1.5]), (7 * np.pi / 4))
 
         self.startTime = time.time()
+        pygame.mouse.set_visible(False)
+        pygame.event.set_grab(True)
             
     def exit(self):
-        self.extraTime += time.time() - self.startTime
+        self.extraTime = self.getTime()
+        pygame.mouse.set_visible(True)
+        pygame.event.set_grab(False)
         return self.persistentVar
     
     def draw(self):
@@ -98,40 +107,11 @@ class Gameplay(template.State):
                                                  self.columnWidth, self.screenHeight))
             
             angle = (angle - angleIncrement) % (2 * np.pi)
-            
-            """
-                try:
-                    
-                except pygame.error:
-                    # this is because transform.scale has a limit, when you get too close to the wall, the image
-                    # slices get toooooooo large
-                    pygame.draw.rect(self.screen, (actualDistance * 5, actualDistance * 5, actualDistance * 5),
-                                     pygame.Rect(column * columnWidth, 0, columnWidth, self.screenHeight))
-            except KeyError:
-                pass
-            """
-            
-            
-            
+
+        # draws the player's time
+        timeText = self.timerFont.render(f"{round(self.getTime(),3)}", True, self.timerColour)
+        self.screen.blit(timeText, (0,0))
         
-        # ############# draws debug mini-map ############# #
-        # pygame.draw.rect(self.screen, (200, 200, 200),
-        # pygame.Rect(0, 0, self.levelDimensions[0] * 50, self.levelDimensions[1] * 50))
-        # for i, row in enumerate(self.level):
-        #     for j, block in enumerate(row):
-        #         if block == "#":
-        #             pygame.draw.rect(self.screen, (0, 0, 0), (
-        #             j * 50, i * 50, self.levelDimensions[0] * 50 / len(row),
-        #             self.levelDimensions[1] * 50 / len(self.level)))
-        #     angle = (angle - angleIncrement) % (2 * np.pi)
-        # playerPos = (self.player.pos[0] * 50, self.player.pos[1] * 50)
-        # ray1 = rayList[0]
-        # ray3 = rayList[int((len(rayList)-1)/2)]
-        # ray2 = rayList[-1]
-        # pygame.draw.line(self.screen, (255,0,0), playerPos, (ray1.endPos[0]*50, ray1.endPos[1]*50))
-        # pygame.draw.line(self.screen, (255, 0, 0), playerPos, (ray2.endPos[0] * 50, ray2.endPos[1] * 50))
-        # pygame.draw.line(self.screen, (0, 255, 0), playerPos, (ray3.endPos[0] * 50, ray3.endPos[1] * 50))
-        # pygame.display.update()
     
     def update(self, dt):
         """
@@ -144,6 +124,7 @@ class Gameplay(template.State):
         if wall != self.groundChar:  # if player is not in an empty square
             self.wallType[wall].handleCollision(self.player, self)  # calls the wall's collision method
         self.player.turn()
+        self.player.cameraAngle += pygame.mouse.get_rel()[0] * -self.mouseSensitivity
         
     def getEvent(self, event):
         """
@@ -151,23 +132,26 @@ class Gameplay(template.State):
         pause
         """
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_w:
+            if event.key == pygame.K_w or event.key == pygame.K_UP:
                 self.player.relVel = np.array([0.05, 0])
-            elif event.key == pygame.K_s:
+            elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
                 self.player.relVel = np.array([-0.05, 0])
-            elif event.key == pygame.K_a:
+            elif event.key == pygame.K_a or event.key == pygame.K_LEFT:
                 self.player.cameraVel = 0.05
-            elif event.key == pygame.K_d:
+            elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
                 self.player.cameraVel = -0.05
             elif event.key == pygame.K_ESCAPE:
                 self.nextState = "menu"
                 
         elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_w:
+            if event.key == pygame.K_w or event.key == pygame.K_UP:
                 self.player.relVel = np.array([0, 0])
-            elif event.key == pygame.K_s:
+            elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
                 self.player.relVel = np.array([0, 0])
-            elif event.key == pygame.K_a:
+            elif event.key == pygame.K_a or event.key == pygame.K_LEFT:
                 self.player.cameraVel = 0
-            elif event.key == pygame.K_d:
+            elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
                 self.player.cameraVel = 0
+
+    def getTime(self):
+        return time.time() - self.startTime + self.extraTime
