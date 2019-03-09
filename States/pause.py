@@ -8,15 +8,6 @@ class Pause(template.State):
     
     def __init__(self, screen, identifier="pause"):
         super().__init__(screen, identifier)
-        """
-        ## attributes in super() ##
-        self.nextState
-        self.quit
-        self.screen
-        self.screenWidth, self.screenHeight
-        self.persistentVar
-        self.id
-        """
         self.backgroundColour = (75, 75, 75)
         self.textColour = (23, 211, 221)
         self.buttonColour = (24, 100, 221)
@@ -24,8 +15,9 @@ class Pause(template.State):
                                       int(2*self.screenWidth/4), int(2.8*self.screenHeight/4))
         self.titleText = pygame.font.Font(None, int(self.screenHeight/10)).render("Paused", True, self.textColour)
         self.titleRect = self.titleText.get_rect(midtop=(int(self.screenWidth / 2), int(2*self.screenHeight/10)))
-        buttonSpacing = 1.5*self.screenHeight/10
+
         topButtony = int(4*self.screenHeight / 10)
+        buttonSpacing = 1.5*self.screenHeight/10
         self.buttonList = [button.Button(self.screen, "menu", {"restart":True}, "Back to Menu",
                                          int(self.screenHeight / 10), self.textColour,
                                          self.buttonColour, (int(self.screenWidth / 2),topButtony)),
@@ -62,7 +54,19 @@ class Pause(template.State):
     def getEvent(self, event):
         if event.type == pygame.MOUSEBUTTONUP:
             try:
-                self.nextState = self.mouseOveredButton.nextState
-                self.persistentVar.update(self.mouseOveredButton.nextStateArgs)
-            except AttributeError:
+                mouseIsOverButton = self.mouseOveredButton.mouseIsOverMe
+            except AttributeError:  # raised if mouseOveredButton is None
                 pass
+            else:
+                if mouseIsOverButton:
+                    # if the button is clicked, update next state and persistentVar
+                    self.nextState = self.mouseOveredButton.nextState
+                    self.persistentVar.update(self.mouseOveredButton.nextStateArgs)
+                else:
+                    pass
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.nextState = "gameplay"
+                self.persistentVar["restart"] = False
+
+                

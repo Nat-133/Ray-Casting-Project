@@ -53,6 +53,9 @@ class Gameplay(template.State):
         self.startTime = time.time()
         pygame.mouse.set_visible(False)
         pygame.event.set_grab(True)
+        #^ affixes the curser to the window
+        pygame.mouse.get_rel()
+        #^ resets the relative position of the mouse
             
     def exit(self):
         self.extraTime = self.getTime()
@@ -141,7 +144,7 @@ class Gameplay(template.State):
             elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
                 self.player.cameraVel = -0.05
             elif event.key == pygame.K_ESCAPE:
-                self.nextState = "menu"
+                self.nextState = "pause"
                 
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_w or event.key == pygame.K_UP:
