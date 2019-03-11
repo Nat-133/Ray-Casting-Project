@@ -39,6 +39,6 @@ class NextLevelDoor(Wall):
         self.nextStateArgs = {"levelNum":1, "restart":True}
         
     def handleCollision(self, player, state):
-        self.nextStateArgs.update({"levelNum":state.levelNum+1})
+        self.nextStateArgs.update({"levelNum":state.levelNum})
         state.persistentVar.update(self.nextStateArgs)
-        state.nextState = "level select"
+        state.nextState = "level complete"

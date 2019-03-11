@@ -5,6 +5,7 @@ from States import level_select
 from States import menu
 from States import gameplay
 from States import pause
+from States import post_level
 
 print(os.getcwd())
 
@@ -23,7 +24,7 @@ class StateController:
         self.stateDict = {"menu": menu.Menu(self.screen, "menu"),
                           "level select":level_select.LevelSelect(self.screen, "level select"),
                           "gameplay": gameplay.Gameplay(self.screen, "gameplay"),
-                          "level complete":4,
+                          "level complete":post_level.PostLevelMenu(self.screen, "level complete"),
                           "pause":pause.Pause(self.screen, "pause")}
         self.activeState = self.stateDict["menu"]
         self.persistentVar = {"restart": True, "levelNum": 1}
