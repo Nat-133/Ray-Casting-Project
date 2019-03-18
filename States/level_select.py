@@ -31,7 +31,7 @@ class LevelSelect(template.State):
         self.textColour = (23, 211, 221)
         self.titleText = pygame.font.Font(None, 90).render("Level Select", True, self.textColour)
         self.titleRect = self.titleText.get_rect(center=(int(self.screenWidth/2),40))
-        
+
     def generatePages(self):
         levels = self.getLevels()
         numberOfButtons = len(levels)

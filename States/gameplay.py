@@ -49,6 +49,7 @@ class Gameplay(template.State):
                 self.level = np.array(json.loads(f.read()))  # loads the level into a numpy array
             self.levelDimensions = self.level.shape
             self.player = player.Player(1, np.array([1.5, 1.5]), (7 * np.pi / 4))
+        print(self.levelNum)
 
         self.startTime = time.time()
         pygame.mouse.set_visible(False)
@@ -59,6 +60,7 @@ class Gameplay(template.State):
             
     def exit(self):
         self.extraTime = self.getTime()
+        self.persistentVar["time"] = self.extraTime
         pygame.mouse.set_visible(True)
         pygame.event.set_grab(False)
         return self.persistentVar
