@@ -50,6 +50,7 @@ class CharBox:
         self.char = "A"
         self.textColour = textColour
         self.font = pygame.font.Font(None, int(fontSize-lineWidth))
+        self.rect = self.font.render("W",True, (0,0,0)).get_rect(midbottom=self.midbottom)
         self.width = self.font.render("W",True, (0,0,0)).get_width()
         self.underline = pygame.Rect((0,0),(self.width, lineWidth))
         self.underline.midbottom = midbottom
@@ -62,8 +63,11 @@ class CharBox:
     def flashTime(self):
         return time.time()%self.flashSpeed
         
-    def update(self, key):
-        if key == pygame.K_RETURN:
+    def event(self, key):
+        if not self.active and self.next:
+            self.next.event(key)
+            
+        elif key == pygame.K_RETURN:
             self.active = False
             if self.next:
                 self.next.active = True
@@ -74,7 +78,18 @@ class CharBox:
         else:
             self.char = chr(key).upper()
 
-
+    def click(self, mousePos):
+        """
+        activates any box the mouse is over
+        deactivates any others in the chain
+        """
+        if self.rect.collidepoint(mousePos):
+            self.active = True
+        else:
+            self.active = False
+        if self.next:
+            self.next.click(mousePos)
+        
     def draw(self):
         if self.flashTime>self.flashSpeed/2 and self.active:
             text = self.font.render(self.char, True, self.lineColour)
@@ -83,13 +98,7 @@ class CharBox:
         textRect = text.get_rect(midbottom=self.midbottom)
         self.screen.blit(text, textRect)
         pygame.draw.rect(self.screen, self.lineColour, self.underline)
-
-    def updateAll(self, key):
-        if self.active:
-            self.update(key)
-        else:
-            if self.next:  # if self.next exists
-                self.next.updateAll(key)
+        
                 
     def drawAll(self):
         """
@@ -105,6 +114,7 @@ class CharBox:
         """
         nextString = self.next.returnString() if self.next else ""
         return self.char + nextString
+        
 
 if __name__ == '__main__':
     pygame.init()
@@ -116,5 +126,6 @@ if __name__ == '__main__':
         pygame.display.update()
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
-                box.updateAll(event.key)
-                print(box.returnString())
+                box.event(event.key)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                box.click(pygame.mouse.get_pos())
