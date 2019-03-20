@@ -4,7 +4,7 @@ import json
 
 from States import template
 from State_Code import button
-
+from State_Code import name_input
 
 class LevelCompleteMenu(template.State):
 
@@ -37,6 +37,8 @@ class LevelCompleteMenu(template.State):
                            button.Button(self.screen, "gameplay", {"levelNum":2,"restart": True}, "Next Level",
                                          int(self.screenHeight / 10), self.textColour,
                                          self.buttonColour, (midx+buttonSeperation, ycoord))]
+        self.nameInput = name_input.CharBox.createBoxes(3, (midx, ycoord-100), 100,
+                                                        self.screen, 100, 4, (255,255,255), (0,255,0))
 
         self.mouseOveredButton = None
         
@@ -65,7 +67,17 @@ class LevelCompleteMenu(template.State):
         self.highscoreRect = self.titleText.get_rect(center=(int(self.screenWidth / 2), int(3*self.screenHeight/10)))
         
     def exit(self):
-        print(self.persistentVar)
+        highscores = self.getHighscores()
+        if self.newHighscore:
+            name = self.nameInput.returnString()
+            highscores.append((name, self.persistentVar["time"]))  # link the name with time
+            getTime = lambda val:val[1]  # returns second value in an iteratable
+            highscores.sort(key=getTime)  # sorts highscores based on time
+            if len(highscores)>10:  # if there are too many highscores in list
+                highscores = highscores[:10]
+        with open(os.path.relpath(f"Highscores\\Level_{self.levelNum}.txt"), "w") as f:
+            f.write(json.dumps(highscores))  # store highscores in the right file
+
         return self.persistentVar
     
     def draw(self):
@@ -74,6 +86,7 @@ class LevelCompleteMenu(template.State):
         self.screen.blit(self.highscoreText, self.highscoreRect)
         for singleButton in self.buttonList:
             singleButton.draw()
+        self.nameInput.drawAll()
     
     def update(self, dt):
         mousePos = pygame.mouse.get_pos()
@@ -83,9 +96,9 @@ class LevelCompleteMenu(template.State):
                 self.mouseOveredButton = singleButton
     
     def getEvent(self, event):
-        pass
-    
         if event.type == pygame.MOUSEBUTTONUP:
+            mousePos = pygame.mouse.get_pos()
+            self.nameInput.click(mousePos)
             try:
                 mouseIsOverButton = self.mouseOveredButton.mouseIsOverMe
             except AttributeError:  # raised if mouseOveredButton is None
@@ -97,6 +110,8 @@ class LevelCompleteMenu(template.State):
                     self.persistentVar.update(self.mouseOveredButton.nextStateArgs)
                 else:
                     pass
+        elif event.type == pygame.KEYDOWN:
+            self.nameInput.event(event.key)
 
     def getHighscores(self):
         """
