@@ -6,7 +6,7 @@ from States import menu
 from States import gameplay
 from States import pause
 from States import level_complete
-
+from States import highscore_menu
 print(os.getcwd())
 
 
@@ -21,11 +21,12 @@ class StateController:
         self.quit = False
         self.clock = pygame.time.Clock()
         self.FPS = 30
-        self.stateDict = {"menu": menu.Menu(self.screen, "menu"),
-                          "level select":level_select.LevelSelect(self.screen, "level select"),
-                          "gameplay": gameplay.Gameplay(self.screen, "gameplay"),
-                          "level complete":level_complete.LevelCompleteMenu(self.screen, "level complete"),
-                          "pause":pause.Pause(self.screen, "pause")}
+        self.stateDict = {"menu": menu.Menu(self.screen),
+                          "level select":level_select.LevelSelect(self.screen),
+                          "gameplay": gameplay.Gameplay(self.screen),
+                          "level complete":level_complete.LevelCompleteMenu(self.screen),
+                          "pause":pause.Pause(self.screen),
+                          "highscore menu":highscore_menu.HighscoreMenu(self.screen)}
         self.activeState = self.stateDict["menu"]
         self.persistentVar = {"restart": True, "levelNum": 1}
         self.activeState.startup(self.persistentVar)

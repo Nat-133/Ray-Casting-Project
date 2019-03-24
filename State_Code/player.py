@@ -4,32 +4,44 @@ import numpy as np
 class Player:
     
     def __init__(self, speed, pos, cameraAngle):
-        self.speed = speed
+        self.baseSpeed = speed
+        self.sprintSpeed = speed * 2
+        self.sprint = False
         self.pos = pos
         self._cameraAngle = cameraAngle
         
         self.cameraVel = 0
-        self._absVel = np.array([0, 0])
-        self._relVel = np.array([0, 0])
+        self._absDirection = np.array([0, 0])
+        self._relDirection = np.array([0, 0])
         
     @property
     def intPos(self):
         return [int(self.pos[0]), int(self.pos[1])]
     
     @property
-    def relVel(self):
+    def relDirection(self):
         """
-        this is the player's velocity relative to the camera angle
+        this is the player's movement direction relative to the camera angle
         """
-        return self._relVel
+        return self._relDirection
     
-    @relVel.setter
-    def relVel(self, value):
+    @relDirection.setter
+    def relDirection(self, value):
         """
-        updates the absolute velocity when relVel changes
+        updates the absolute movement direction when relVel changes
         """
-        self._relVel = value
-        self._absVel = self.rotateVector(self._relVel, self.cameraAngle)
+        self._relDirection = value
+        self._absDirection = self.rotateVector(self._relDirection, self.cameraAngle)
+
+    @property
+    def velocity(self):
+        """
+        the players absolute velocity
+        """
+        if self.sprint:
+            return self._absDirection * self.sprintSpeed
+        else:
+            return self._absDirection * self.baseSpeed
     
     @property
     def cameraAngle(self):
@@ -41,13 +53,13 @@ class Player:
         updates the absolute velocity when the camera angle changes
         """
         self._cameraAngle = value % (2*np.pi)  # angle wrapping
-        self._absVel = self.rotateVector(self.relVel, self.cameraAngle)
+        self._absDirection = self.rotateVector(self.relDirection, self.cameraAngle)
         
     def move(self):
-        self.pos += self._absVel
+        self.pos += self.velocity
         
     def demove(self):
-        self.pos -= self._absVel
+        self.pos -= self.velocity
         
     def turn(self):
         self.cameraAngle += self.cameraVel

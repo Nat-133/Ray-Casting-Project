@@ -27,7 +27,7 @@ class Gameplay(template.State):
         self.startTime = time.time()
         self.extraTime = 0
         
-        self.player = player.Player(1, np.array([1.5, 1.5]), (7*np.pi/4))
+        self.player = player.Player(0.05, np.array([1.5, 1.5]), (7*np.pi/4))
         self.fov = np.pi/3
 
         self.timerFont = pygame.font.Font(None,50)
@@ -48,7 +48,7 @@ class Gameplay(template.State):
             with open(os.path.relpath(f"Levels//{self.levelFile}"), "r") as f:
                 self.level = np.array(json.loads(f.read()))  # loads the level into a numpy array
             self.levelDimensions = self.level.shape
-            self.player = player.Player(1, np.array([1.5, 1.5]), (7 * np.pi / 4))
+            self.player = player.Player(0.05, np.array([1.5, 1.5]), (7 * np.pi / 4))
         print(self.levelNum)
 
         self.startTime = time.time()
@@ -59,6 +59,7 @@ class Gameplay(template.State):
         #^ resets the relative position of the mouse
             
     def exit(self):
+        self.player.sprint = False
         self.extraTime = self.getTime()
         self.persistentVar["time"] = self.extraTime
         pygame.mouse.set_visible(True)
@@ -138,25 +139,29 @@ class Gameplay(template.State):
         """
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_w or event.key == pygame.K_UP:
-                self.player.relVel = np.array([0.05, 0])
+                self.player.relDirection = np.array([1, 0])
             elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
-                self.player.relVel = np.array([-0.05, 0])
+                self.player.relDirection = np.array([-1, 0])
             elif event.key == pygame.K_a or event.key == pygame.K_LEFT:
                 self.player.cameraVel = 0.05
             elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
                 self.player.cameraVel = -0.05
+            elif event.key == pygame.K_f or event.key == pygame.K_LSHIFT:
+                self.player.sprint = True
             elif event.key == pygame.K_ESCAPE:
                 self.nextState = "pause"
                 
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_w or event.key == pygame.K_UP:
-                self.player.relVel = np.array([0, 0])
+                self.player.relDirection = np.array([0, 0])
             elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
-                self.player.relVel = np.array([0, 0])
+                self.player.relDirection = np.array([0, 0])
             elif event.key == pygame.K_a or event.key == pygame.K_LEFT:
                 self.player.cameraVel = 0
             elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
                 self.player.cameraVel = 0
+            elif event.key == pygame.K_f or event.key == pygame.K_LSHIFT:
+                self.player.sprint = False
 
     def getTime(self):
         return time.time() - self.startTime + self.extraTime

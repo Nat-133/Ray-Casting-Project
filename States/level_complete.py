@@ -31,7 +31,7 @@ class LevelCompleteMenu(template.State):
         self.buttonList = [button.Button(self.screen, "gameplay", {"levelNum":1,"restart":True}, "Restart",
                                          int(self.screenHeight / 10), self.textColour,
                                          self.buttonColour, (midx-buttonSeperation, ycoord)),
-                           button.Button(self.screen, "level select", {"restart": True}, "Level Select",
+                           button.Button(self.screen, "level select", {"restart": False}, "Level Select",
                                          int(self.screenHeight / 10), self.textColour,
                                          self.buttonColour,(midx, ycoord+self.screenHeight//10)),
                            button.Button(self.screen, "gameplay", {"levelNum":2,"restart": True}, "Next Level",
@@ -55,9 +55,9 @@ class LevelCompleteMenu(template.State):
         
         time = self.persistentVar["time"]
         highscores = self.getHighscores()
-        self.newHighscore = any(time<t for n,t in highscores) or highscores == []
+        self.newHighscore = any(time<t for n,t in highscores) or len(highscores) < 10
         if self.newHighscore:
-            topscore = all(time<t for n,t in highscores) or highscores == []
+            topscore = all(time<t for n,t in highscores) or len(highscores) < 10
             highscoreMessage = "new highscore" if topscore else "top ten"
             #^ variable highscore message based on position on leaderboard
         else:

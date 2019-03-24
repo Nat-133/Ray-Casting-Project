@@ -77,6 +77,9 @@ class CharBox:
                 self.previous.active = True
         else:
             self.char = chr(key).upper()
+            self.active = False
+            if self.next:
+                self.next.active = True
 
     def click(self, mousePos):
         """
