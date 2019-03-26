@@ -13,8 +13,10 @@ from State_Code import raycast
 class Gameplay(template.State):
     groundChar = " "
     columnWidth = 1  # the width of the wall slices in pixels
-    wallType = {"#" : walls.Wall("test_wall.png", columnWidth),
-                "B" : walls.Wall("test_wall_2.png", columnWidth),
+    wallType = {"#" : walls.Wall("Stone_brick_wall.png", columnWidth),
+                "B" : walls.Wall("Redbrick_wall.png", columnWidth),
+                "M" : walls.Wall("Mossy_wall.png", columnWidth),
+                "C" : walls.Wall("Cave_wall.png", columnWidth),
                 "E" : walls.NextLevelDoor("exit_wall.png", columnWidth)}
     
     def __init__(self, screen, identifier="gameplay"):

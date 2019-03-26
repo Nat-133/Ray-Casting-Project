@@ -2,7 +2,7 @@ import json
 import random
 import os
 import time
-
+import room_maze
 class Cell:
     def __init__(self, index):
         self.index = index
@@ -95,21 +95,15 @@ def getGreatestLevelNum(directoryFiles, check=None):
         return getGreatestLevelNum(directoryFiles, check-1)
 
 
-def createMazeFile(w=10, h=10, newLevelNum=None):
+def createMazeFile(w=15, h=15, newLevelNum=None):
     newLevelNum = newLevelNum if newLevelNum else getGreatestLevelNum(os.listdir())+ 1
     # the above allows newLevelNum to be specified by the user
-    cells = generateMaze(w, h)
-    choices = [(-1,0),(1,0),(0,-1),(0,1)]
-    for i in range(int(w*h/4)):
-        randomy = random.randint(0,len(cells)-3)+1
-        randomx = random.randint(0,len(cells[0])-3)+1
-        cells[randomy][randomx].relativeOutLinks.append(random.choice(choices))
-        # randomly adds more connecters to make the mazes easier
-        
-    maze = createListMaze(cells)
-    maze[-2][-2] = "E"  # adds the exit
+    maze = room_maze.Maze(w, h)
+    maze.createRooms((w+h)//2)
+    maze.createPaths()
+    
     with open(f"level_{newLevelNum}.txt", "w") as f:
-        f.write(json.dumps(maze).replace("],","],\n"))  # saves the maze to a file
+        f.write(str(maze).replace("'",'"'))  # saves the maze to a file
     
 
 def generateMultipleMazeFiles(number):
