@@ -4,7 +4,7 @@ import pygame
 import pickle
 
 from States import template
-from Misc import button
+from State_Code import button
 
 
 class LevelSelect(template.State):
@@ -31,7 +31,7 @@ class LevelSelect(template.State):
         self.textColour = (23, 211, 221)
         self.titleText = pygame.font.Font(None, 90).render("Level Select", True, self.textColour)
         self.titleRect = self.titleText.get_rect(center=(int(self.screenWidth/2),40))
-        
+
     def generatePages(self):
         levels = self.getLevels()
         numberOfButtons = len(levels)
@@ -53,9 +53,11 @@ class LevelSelect(template.State):
     
     def startup(self, persistentVar):
         self.persistentVar = persistentVar
-        self.pages = self.generatePages()
-        self.currentPage = self.pages[0]
+        if self.persistentVar["restart"]:
+            self.pages = self.generatePages()
+            self.currentPage = self.pages[0]
         self.nextState = self.id
+        self.currentPage.startup()
         self.screen.fill(self.backgroundColour)
         self.screen.blit(self.titleText, self.titleRect)
     
@@ -144,11 +146,12 @@ class Page:
                 columnsBeforeNum = i % self.rowNum
                 buttonCentrePosx = self.xBorderLeft + (xButtonSpacing * columnsBeforeNum)
                 buttonCentrePosy = self.yBorderTop + (yButtonSpacing * rowsBeforeButton)
-                self.buttonList.append(button.Button(self.screen, "gameplay",
-                                                     {"restart":True, "levelNum":buttonIndex + 1},
-                                                     f"{buttonIndex + 1}", self.buttonFontSize,
-                                                     (23, 211, 221), (24, 100, 221),
-                                                     (buttonCentrePosx, buttonCentrePosy), self.buttonSize))
+                newButton = button.MultiButton(self.screen, "gameplay", "highscore menu",
+                                               {"restart":True, "levelNum":buttonIndex + 1},
+                                                f"{buttonIndex + 1}","i", self.buttonFontSize,
+                                               (23, 211, 221), (24, 100, 221), (24, 50, 230),
+                                               (buttonCentrePosx, buttonCentrePosy), self.buttonSize)
+                self.buttonList.append(newButton)
         
         horizontalScreenCentre = int(self.screenWidth/2)
         loweryBorderCentre = int(self.screenWidth - (self.yBorderBottom / 2))

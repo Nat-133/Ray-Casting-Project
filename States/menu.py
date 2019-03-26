@@ -2,7 +2,7 @@ import sys, os
 import pygame
 
 from States import template
-from Misc import button
+from State_Code import button
 
 
 class Menu(template.State):
@@ -33,9 +33,9 @@ class Menu(template.State):
         buttonColour = (24, 100, 221)
         
         screenMiddle = (int(self.screenWidth/2), int(self.screenHeight/2))
-        self.buttonList = [button.Button(self.screen, "gameplay", {"levelNum": 1}, "Quick Play", 40,
+        self.buttonList = [button.Button(self.screen, "gameplay", {"restart":True, "levelNum": 1}, "Quick Play", 40,
                                          buttonTextColour, buttonColour, (screenMiddle[0], screenMiddle[1])),
-                           button.Button(self.screen, "level select", {}, "Level Select",
+                           button.Button(self.screen, "level select", {"restart":True}, "Level Select",
                                          40, buttonTextColour, buttonColour, (screenMiddle[0], screenMiddle[1]+50))]
         self.persistentVar = {}
        
@@ -67,8 +67,5 @@ class Menu(template.State):
         if event.type == pygame.MOUSEBUTTONUP:
             for thing in self.buttonList:
                 if thing.mouseIsOverMe:
-                    print(self.persistentVar)
-                    print(thing.nextStateArgs)
-                    print("")
                     self.persistentVar = {**self.persistentVar, **thing.nextStateArgs}
                     self.nextState = thing.nextState

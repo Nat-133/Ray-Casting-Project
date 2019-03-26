@@ -85,3 +85,60 @@ class InternalStateButton(Button):
     def __repr__(self):
         return f"InternalStateButton(position={self.rect.center}, " \
                f"arguments={self.returnedArgs}, text={self.text}"
+
+class MultiButton(Button):
+    """
+    buttons with a smaller linked button in the topRight
+    """
+    def __init__(self, screen, primaryNextState, secondaryNextState, nextStateArgs, primaryText,
+                 secondaryText, primaryTextSize, textColour, primaryBackgroundColour,
+                 secondaryBackgroundColour, centrePos, buttonDimensions):
+        self.nextStateArgs = nextStateArgs
+        self.primaryButton=Button(screen, primaryNextState, nextStateArgs, primaryText,
+                 primaryTextSize, textColour, primaryBackgroundColour, centrePos, buttonDimensions=buttonDimensions)
+        self.rect = self.primaryButton.rect
+        secondaryButtonSize = buttonDimensions[0]//5
+        secondaryFontSize = secondaryButtonSize-2
+        secondaryCentre = self.getSecondaryCentrePos(secondaryButtonSize, 2)
+        self.secondaryButton = Button(screen, secondaryNextState, nextStateArgs, secondaryText,
+                                      secondaryFontSize, textColour, secondaryBackgroundColour,
+                                      secondaryCentre, buttonDimensions=(secondaryButtonSize,secondaryButtonSize))
+    
+    @property
+    def nextState(self):
+        if self.secondaryButton.mouseIsOverMe:
+            return self.secondaryButton.nextState
+        else:
+            return self.primaryButton.nextState
+
+    @property
+    def mouseIsOverMe(self):
+        b1 = self.primaryButton.mouseIsOverMe
+        b2 = self.secondaryButton.mouseIsOverMe
+        return b1 or b2
+
+    def getSecondaryCentrePos(self, buttonSize, offset):
+        """
+        returns the coordinates of the centre of the secondary button
+        """
+        topright=(self.rect.topright[0] - offset, self.rect.topright[1] + offset)
+        secondaryRect = pygame.Rect(0, 0, buttonSize, buttonSize)
+        secondaryRect.topright = topright
+        return secondaryRect.center
+
+    def draw(self):
+        """ draws the sub buttons"""
+        self.primaryButton.draw()
+        self.secondaryButton.draw()
+
+    def update(self, mousepos):
+        """ updates sub buttons dependent upon each other """
+        self.secondaryButton.update(mousepos)
+        if self.secondaryButton.mouseIsOverMe:
+            #  ensures only one sub button has its colours inverted
+            self.primaryButton.mouseIsOverMe = False
+        else:
+            self.primaryButton.update(mousepos)
+
+    
+       

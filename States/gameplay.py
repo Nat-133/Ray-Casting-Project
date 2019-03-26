@@ -3,6 +3,7 @@ import json
 import time
 import pygame
 import numpy as np
+from math import ceil
 
 from States import template
 from State_Code import walls
@@ -11,22 +12,16 @@ from State_Code import raycast
 
 class Gameplay(template.State):
     groundChar = " "
-    wallType = {"#":walls.Wall("test_wall.png"),
-                "E":walls.NextLevelDoor("exit_wall.png")}
+    columnWidth = 1  # the width of the wall slices in pixels
+    wallType = {"#" : walls.Wall("Stone_brick_wall.png", columnWidth),
+                "B" : walls.Wall("Redbrick_wall.png", columnWidth),
+                "M" : walls.Wall("Mossy_wall.png", columnWidth),
+                "C" : walls.Wall("Cave_wall.png", columnWidth),
+                "E" : walls.NextLevelDoor("exit_wall.png", columnWidth)}
     
     def __init__(self, screen, identifier="gameplay"):
         super().__init__(screen, identifier)
-        """
-        ## attributes in super() ##
-        self.nextState
-        self.quit
-        self.screen
-        self.screenWidth, self.screenHeight
-        self.persistentVar
-        self.id
-        """
-        self.timerFont = pygame.font.Font(None, 100)
-        self.screenRes = (self.screenWidth/2, self.screenHeight)
+        self.screenRes = (int(self.screenWidth/self.columnWidth), self.screenHeight)  # the resolution used when drawing the walls
         self.levelNum = 1
         self.level = np.array([["#", "#", "#"], ["#", " ", "#"], ["#", "#", "#"]])
         self.levelDimensions = self.level.shape
@@ -34,106 +29,114 @@ class Gameplay(template.State):
         self.startTime = time.time()
         self.extraTime = 0
         
-        self.player = player.Player(1, np.array([1.5, 1.5]), (7*np.pi/4))
+        self.player = player.Player(0.05, np.array([1.5, 1.5]), (7*np.pi/4))
         self.fov = np.pi/3
+
+        self.timerFont = pygame.font.Font(None,50)
+        self.timerColour = (0, 200, 0)
+
+        self.mouseSensitivity = 0.01
         
     def startup(self, persistentVar):
         """
-        ### called when the state becomes active
-        :param persistentVar: should be a dict with a "levelNum" key
-        :return:
+        called when the state becomes active
         """
         self.nextState = self.id
         self.persistentVar = persistentVar
         if self.persistentVar["restart"]:
             self.extraTime = 0
-            self.startTime = time.time()
             self.levelNum = self.persistentVar["levelNum"]
             self.levelFile = f"level_{self.levelNum}.txt"
-            with open(os.path.relpath(f"Levels//{self.levelFile}"), "r") as f:
-                self.level = np.array(json.loads(f.read()))
+            try:
+                with open(os.path.relpath(f"Levels//{self.levelFile}"), "r") as f:
+                    self.level = np.array(json.loads(f.read()))  # loads the level into a numpy array
+            except (json.decoder.JSONDecodeError, FileNotFoundError):
+                self.level = np.array([["#","#","#"],
+                                       ["#"," ","#"],
+                                       ["#","#","#"]])
             self.levelDimensions = self.level.shape
-            self.player = player.Player(1, np.array([1.5, 1.5]), (7 * np.pi / 4))
-        else:
-            self.startTime = time.time()
+            self.player = player.Player(0.05, np.array([1.5, 1.5]), (7 * np.pi / 4))
+
+        self.startTime = time.time()
+        pygame.mouse.set_visible(False)
+        pygame.event.set_grab(True)
+        #^ affixes the curser to the window
+        pygame.mouse.get_rel()
+        #^ resets the relative position of the mouse
             
     def exit(self):
-        self.extraTime += time.time() - self.startTime
+        self.player.sprint = False
+        self.extraTime = self.getTime()
+        self.persistentVar["time"] = self.extraTime
+        pygame.mouse.set_visible(True)
+        pygame.event.set_grab(False)
         return self.persistentVar
     
     def draw(self):
         """
-        ray casting
-        
-        :return:
+        ray casting for every pixle collumn
         """
-        rayList =[]
         self.screen.fill((75,75,75))
         floorRect = pygame.Rect(0, int(self.screenHeight/2), self.screenWidth, int(self.screenHeight/2))
         pygame.draw.rect(self.screen, (25,25,25), floorRect)
         angleIncrement = self.fov/self.screenRes[0]
-        columnWidth = int(self.screenWidth/self.screenRes[0])
         angle = (self.player.cameraAngle + (self.fov / 2) + 0.0000001) % (2*np.pi)
         
-        beta = int(self.fov/2) + 0.0000001
         x, y = self.player.pos
         bugAngleList = []
         for column in range(int(self.screenRes[0])):
             ray = raycast.Ray(angle, x, y, self.level, self.groundChar)
-            rayList.append(ray)
             viewDistance = ray.length
             actualDistance = viewDistance * np.cos(angle - self.player.cameraAngle)
             try:
                 hitWall = self.wallType[ray.hitWall]
-                sliceTexture = hitWall.getTexture(ray.endPos)
-                topyPos = (self.screenHeight - (1 / actualDistance) * self.screenHeight * 1)/2
-                wallHeight = int((1 / actualDistance) * self.screenHeight * 1)
-                try:
-                    sliceTexture = pygame.transform.scale(sliceTexture, (columnWidth, wallHeight))
-                    self.screen.blit(sliceTexture, (column * columnWidth, topyPos))
-                except pygame.error:
-                    # this is because transform.scale has a limit, when you get too close to the wall, the image
-                    # slices get toooooooo large
-                    pygame.draw.rect(self.screen, (actualDistance * 5, actualDistance * 5, actualDistance * 5),
-                                     pygame.Rect(column * columnWidth, 0, columnWidth, self.screenHeight))
             except KeyError:
                 pass
+            else:
+                sliceTexture = hitWall.getTexture(ray.endPos)
+                currentSliceSize = sliceTexture.get_size()
+                wallHeight = int((1 / actualDistance) * self.screenHeight)  # the size of the scaled full texture
+                textureScaleFactor = wallHeight / currentSliceSize[1]
+                newSliceHeight = min(currentSliceSize[1], ceil(self.screenHeight/textureScaleFactor))
+                newSliceTopy = int((currentSliceSize[1]-newSliceHeight)/2)  
+                newSliceHeight = currentSliceSize[1]-2*newSliceTopy  # makes the topy and height rounding consistent
+                #^ the height of the texture that will be scaled up
+                sliceSection = pygame.Rect(0, newSliceTopy,
+                                            self.columnWidth, newSliceHeight)
+                textureSection = sliceTexture.subsurface(sliceSection)
+                     
+                if newSliceHeight > 2:  # if the slice is larger than 2 pixels
+                    scaledSectionHeight = int(newSliceHeight*textureScaleFactor)
+                    sliceTexture = pygame.transform.scale(textureSection, (self.columnWidth, scaledSectionHeight))
+                    #^ scales the cropped texture to the correct size
 
+                    topyPos = (self.screenHeight-scaledSectionHeight)//2
+                    self.screen.blit(sliceTexture, (column * self.columnWidth, topyPos))
+                else:
+                    # allows the player to get as close to the wall as they like
+                    colour = textureSection.get_at((0,0))
+                    pygame.draw.rect(self.screen, colour, pygame.Rect(column * self.columnWidth, 0,
+                                                 self.columnWidth, self.screenHeight))
+            
             angle = (angle - angleIncrement) % (2 * np.pi)
+
+        # draws the player's time
+        timeText = self.timerFont.render(f"{round(self.getTime(),3)}", True, self.timerColour)
+        self.screen.blit(timeText, (0,0))
         
-        # ############# draws debug mini-map ############# #
-        # pygame.draw.rect(self.screen, (200, 200, 200),
-        # pygame.Rect(0, 0, self.levelDimensions[0] * 50, self.levelDimensions[1] * 50))
-        # for i, row in enumerate(self.level):
-        #     for j, block in enumerate(row):
-        #         if block == "#":
-        #             pygame.draw.rect(self.screen, (0, 0, 0), (
-        #             j * 50, i * 50, self.levelDimensions[0] * 50 / len(row),
-        #             self.levelDimensions[1] * 50 / len(self.level)))
-        #     angle = (angle - angleIncrement) % (2 * np.pi)
-        # playerPos = (self.player.pos[0] * 50, self.player.pos[1] * 50)
-        # ray1 = rayList[0]
-        # ray3 = rayList[int((len(rayList)-1)/2)]
-        # ray2 = rayList[-1]
-        # pygame.draw.line(self.screen, (255,0,0), playerPos, (ray1.endPos[0]*50, ray1.endPos[1]*50))
-        # pygame.draw.line(self.screen, (255, 0, 0), playerPos, (ray2.endPos[0] * 50, ray2.endPos[1] * 50))
-        # pygame.draw.line(self.screen, (0, 255, 0), playerPos, (ray3.endPos[0] * 50, ray3.endPos[1] * 50))
-        # pygame.display.update()
     
     def update(self, dt):
         """
         changes position and camera angle based on velocities
         also collisions
-        :return:
         """
         self.player.move()
         pos = self.player.intPos
         wall = self.level[pos[1], pos[0]]
-        if wall != self.groundChar:
-            self.nextState = self.wallType[wall].handleCollision(self.player, self)
-            if self.nextState != self.id:
-                self.persistentVar.update(self.wallType[wall].nextStateArgs)
+        if wall != self.groundChar:  # if player is not in an empty square
+            self.wallType[wall].handleCollision(self.player, self)  # calls the wall's collision method
         self.player.turn()
+        self.player.cameraAngle += pygame.mouse.get_rel()[0] * -self.mouseSensitivity
         
     def getEvent(self, event):
         """
@@ -141,23 +144,30 @@ class Gameplay(template.State):
         pause
         """
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_w:
-                self.player.relVel = np.array([0.05, 0])
-            elif event.key == pygame.K_s:
-                self.player.relVel = np.array([-0.05, 0])
-            elif event.key == pygame.K_a:
+            if event.key == pygame.K_w or event.key == pygame.K_UP:
+                self.player.relDirection = np.array([1, 0])
+            elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
+                self.player.relDirection = np.array([-1, 0])
+            elif event.key == pygame.K_a or event.key == pygame.K_LEFT:
                 self.player.cameraVel = 0.05
-            elif event.key == pygame.K_d:
+            elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
                 self.player.cameraVel = -0.05
+            elif event.key == pygame.K_f or event.key == pygame.K_LSHIFT:
+                self.player.sprint = True
             elif event.key == pygame.K_ESCAPE:
                 self.nextState = "pause"
                 
         elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_w:
-                self.player.relVel = np.array([0, 0])
-            elif event.key == pygame.K_s:
-                self.player.relVel = np.array([0, 0])
-            elif event.key == pygame.K_a:
+            if event.key == pygame.K_w or event.key == pygame.K_UP:
+                self.player.relDirection = np.array([0, 0])
+            elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
+                self.player.relDirection = np.array([0, 0])
+            elif event.key == pygame.K_a or event.key == pygame.K_LEFT:
                 self.player.cameraVel = 0
-            elif event.key == pygame.K_d:
+            elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
                 self.player.cameraVel = 0
+            elif event.key == pygame.K_f or event.key == pygame.K_LSHIFT:
+                self.player.sprint = False
+
+    def getTime(self):
+        return time.time() - self.startTime + self.extraTime
