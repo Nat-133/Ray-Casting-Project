@@ -7,7 +7,6 @@ from States import gameplay
 from States import pause
 from States import level_complete
 from States import highscore_menu
-print(os.getcwd())
 
 
 class StateController:

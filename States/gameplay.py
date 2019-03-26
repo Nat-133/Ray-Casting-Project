@@ -47,11 +47,15 @@ class Gameplay(template.State):
             self.extraTime = 0
             self.levelNum = self.persistentVar["levelNum"]
             self.levelFile = f"level_{self.levelNum}.txt"
-            with open(os.path.relpath(f"Levels//{self.levelFile}"), "r") as f:
-                self.level = np.array(json.loads(f.read()))  # loads the level into a numpy array
+            try:
+                with open(os.path.relpath(f"Levels//{self.levelFile}"), "r") as f:
+                    self.level = np.array(json.loads(f.read()))  # loads the level into a numpy array
+            except (json.decoder.JSONDecodeError, FileNotFoundError):
+                self.level = np.array([["#","#","#"],
+                                       ["#"," ","#"],
+                                       ["#","#","#"]])
             self.levelDimensions = self.level.shape
             self.player = player.Player(0.05, np.array([1.5, 1.5]), (7 * np.pi / 4))
-        print(self.levelNum)
 
         self.startTime = time.time()
         pygame.mouse.set_visible(False)

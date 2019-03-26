@@ -67,7 +67,5 @@ class Menu(template.State):
         if event.type == pygame.MOUSEBUTTONUP:
             for thing in self.buttonList:
                 if thing.mouseIsOverMe:
-                    print(self.persistentVar)
-                    print(thing.nextStateArgs)
                     self.persistentVar = {**self.persistentVar, **thing.nextStateArgs}
                     self.nextState = thing.nextState
