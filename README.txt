@@ -1,8 +1,1 @@
-##########################
-#                        #
-#   Made by Nat Manley   #
-#                        #
-##########################
-Basic 3D view game using raycasting to project orthogonal walls
-
-compete with friends to have to best time
+Requires at least Python 3.6 with the corresponding versions of Pygame and NumPy
